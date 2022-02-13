@@ -1,4 +1,4 @@
-package com.example.instagramproject.model;
+package com.example.instagramproject.model.entity;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -9,18 +9,20 @@ import java.time.LocalDate;
 @Table(name = "users")
 public class UserEntity {
 
+    //`id`, `username`, `full_name`, `email`, `pass`, `profile_pic`, `phone_number`, `gender`, `birth_date`, `website`, `bio`, `is_verified`
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "username")
+    @Column
     private String username;
 
     @Column(name = "full_name")
     private String fullName;
 
     //@Email(regexp=".*@.*\\..*", message = "Email should be valid")
-    @Column(name = "email")
+    @Column
     private String email;
 
     @Column(name = "pass")
@@ -32,17 +34,17 @@ public class UserEntity {
     @Column(name = "phone_number")
     private String phoneNumber;
 
-    @Column(name = "gender")
+    @Column
     private String gender;
 
     @Column(name = "birth_date")
     @DateTimeFormat(pattern = "dd/mm/yyyy")
-    private LocalDate date;
+    private LocalDate birthDate;
 
-    @Column(name = "website")
+    @Column
     protected String website;
 
-    @Column(name = "bio")
+    @Column
     protected String bio;
 
 //    @OneToMany(mappedBy = "images")
@@ -50,5 +52,7 @@ public class UserEntity {
 
     @Column(name = "is_verified")
     protected boolean isVerified;
+
+
 
 }

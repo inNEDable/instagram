@@ -1,10 +1,9 @@
-package com.example.instagramproject.model;
+package com.example.instagramproject.model.entity;
 
-import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
+@Entity
+@Table(name = "tags")
 public class TagEntity {
 
     //id, text
@@ -13,6 +12,6 @@ public class TagEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "text")
+    @Column
     private String text;
 }

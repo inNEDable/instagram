@@ -1,13 +1,12 @@
-package com.example.instagramproject.model;
+package com.example.instagramproject.model.entity;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
-import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "posts")
 public class PostEntity {
 
     //id, user_id, date_time, like_count, comment_count, text
@@ -17,18 +16,18 @@ public class PostEntity {
     private Long id;
 
     @Column(name = "user_id")
-    private int user_id;
+    private int userId;
 
     @Column(name = "date_time")
     @DateTimeFormat(pattern = "yyyy/MM/dd hh:mm:ss")
     private LocalDateTime dateTime;
 
-    @Column(name = "lake_count")
-    private Long likes;
+    @Column(name = "like_count")
+    private Long likeCount;
 
     @Column(name = "comment_count")
-    private Long comments;
+    private Long commentCount;
 
-    @Column(name = "text")
+    @Column
     private String text;
 }

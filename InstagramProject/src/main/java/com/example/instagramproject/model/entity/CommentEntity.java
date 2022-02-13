@@ -1,4 +1,4 @@
-package com.example.instagramproject.model;
+package com.example.instagramproject.model.entity;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -16,16 +16,16 @@ public class CommentEntity {
 
     @Column(name = "date_time")
     @DateTimeFormat(pattern = "yyyy/MM/dd hh:mm:ss")
-    private LocalDateTime dateTime;
+    private LocalDateTime dateCreated;
 
     @Column(name = "user_id")
     private int userId;
 
-    @Column(name = "text")
+    @Column
     private String text;
 
     @Column(name = "lake_count")
-    private Long likes;
+    private Long likeCount;
 
     @Column(name = "post_id")
     private int postID;
