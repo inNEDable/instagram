@@ -1,5 +1,6 @@
 package com.example.instagramproject.model.entity;
 
+import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
@@ -7,6 +8,10 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "users")
+@Getter
+@Setter
+@NoArgsConstructor
+
 public class UserEntity {
 
     //`id`, `username`, `full_name`, `email`, `pass`, `profile_pic`, `phone_number`, `gender`, `birth_date`, `website`, `bio`, `is_verified`
@@ -21,7 +26,6 @@ public class UserEntity {
     @Column(name = "full_name")
     private String fullName;
 
-    //@Email(regexp=".*@.*\\..*", message = "Email should be valid")
     @Column
     private String email;
 
@@ -53,6 +57,10 @@ public class UserEntity {
     @Column(name = "is_verified")
     protected boolean isVerified;
 
-
-
+    public UserEntity(String username, String email, String password, String fullName) {
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.fullName = fullName;
+    }
 }

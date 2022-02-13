@@ -1,10 +1,11 @@
 package com.example.instagramproject.controler;
 
+import com.example.instagramproject.model.DTO.UserToRegisterDTO;
+import com.example.instagramproject.model.DTO.UserToReturnDTO;
 import com.example.instagramproject.model.entity.UserEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import com.example.instagramproject.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -12,7 +13,14 @@ import java.util.List;
 @RequestMapping("/users")
 public class UserController {
 
+    @Autowired
+    private UserService userService;
 
+
+    @PostMapping("/register")
+    public UserToReturnDTO registerUser (@RequestBody UserToRegisterDTO userToRegisterDTO){
+        return userService.registerUser(userToRegisterDTO);
+    }
 
 
     @GetMapping("/all")
