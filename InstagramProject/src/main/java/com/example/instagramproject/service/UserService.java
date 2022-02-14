@@ -54,6 +54,7 @@ public class UserService {
     }
 
     public UserEntity getById(long id) {
+
         Optional<UserEntity> optionalUserEntity = userRepository.findById(id);
         if (optionalUserEntity.isPresent()) {
             return optionalUserEntity.get();
@@ -67,5 +68,17 @@ public class UserService {
         return Pattern.compile(EMAIL_REGEX)
                 .matcher(emailAddress)
                 .matches();
+    }
+
+    public UserEntity loginWithEmail(String email, String password) {
+        UserEntity userEntity = userRepository.findUserEntityByEmailAndPassword(email, password);
+        if (userEntity == null) throw new InvalidUserData("Invalid email or password");
+        return userEntity;
+    }
+
+    public UserEntity loginWithUsername(String username, String password) {
+        UserEntity userEntity = userRepository.findUserEntityByUsernameAndPassword(username, password);
+        if (userEntity == null) throw new InvalidUserData("Invalid username or password");
+        return userEntity;
     }
 }

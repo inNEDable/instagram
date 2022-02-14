@@ -1,13 +1,17 @@
 package com.example.instagramproject.model.DTO;
 
 import com.example.instagramproject.model.entity.UserEntity;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NonNull;
+import lombok.*;
 
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class UserToRegisterDTO {
+
+    private Long id;
 
     private String username;
 
@@ -19,7 +23,19 @@ public class UserToRegisterDTO {
 
     private String confirmPassword;
 
+
     public UserEntity toEntity() {
         return new UserEntity(this.username, this.email, this.password, this.fullName);
+    }
+
+    @Override
+    public String toString() {
+        return "UserToRegisterDTO{" +
+                "username='" + username + '\'' +
+                ", fullName='" + fullName + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", confirmPassword='" + confirmPassword + '\'' +
+                '}';
     }
 }
