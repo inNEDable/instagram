@@ -8,6 +8,7 @@ import com.example.instagramproject.model.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 @Service
@@ -46,6 +47,20 @@ public class UserService {
                 .fullName(userEntity.getFullName())
                 .email(userEntity.getEmail())
                 .build();
+    }
+
+    public void removeUserById(long id) {
+        Optional<UserEntity> userEntity = userRepository.findById(id);
+    }
+
+    public UserEntity getById(long id) {
+        Optional<UserEntity> optionalUserEntity = userRepository.findById(id);
+        if (optionalUserEntity.isPresent()) {
+            return optionalUserEntity.get();
+        }
+        else {
+            throw new InvalidUserData("User not found");
+        }
     }
 
     public static boolean patternMatches(String emailAddress) {
