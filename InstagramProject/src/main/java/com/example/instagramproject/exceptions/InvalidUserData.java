@@ -1,15 +1,15 @@
 package com.example.instagramproject.exceptions;
 
-public class EmailExists extends RuntimeException{
+public class InvalidUserData extends RuntimeException{
 
-    public EmailExists() {
+    public InvalidUserData() {
     }
 
-    public EmailExists(String message) {
+    public InvalidUserData(String message) {
         super(message);
     }
 
-    public EmailExists(String message, Throwable cause) {
+    public InvalidUserData(String message, Throwable cause) {
         super(message, cause);
     }
 }

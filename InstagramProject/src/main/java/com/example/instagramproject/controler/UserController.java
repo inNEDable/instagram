@@ -5,6 +5,8 @@ import com.example.instagramproject.model.DTO.UserToReturnDTO;
 import com.example.instagramproject.model.entity.UserEntity;
 import com.example.instagramproject.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,8 +20,9 @@ public class UserController {
 
 
     @PostMapping("/register")
-    public UserToReturnDTO registerUser (@RequestBody UserToRegisterDTO userToRegisterDTO){
-        return userService.registerUser(userToRegisterDTO);
+    public ResponseEntity<UserToReturnDTO> registerUser (@RequestBody UserToRegisterDTO userToRegisterDTO){
+        UserToReturnDTO userToReturnDTO =  userService.registerUser(userToRegisterDTO);
+        return new ResponseEntity<>(userToReturnDTO, HttpStatus.CREATED);
     }
 
 
@@ -29,4 +32,6 @@ public class UserController {
         //Todo method body..
         return null;
     }
+
+
 }

@@ -1,6 +1,6 @@
 package com.example.instagramproject.exceptions;
 
-import org.springframework.http.HttpHeaders;
+import com.example.instagramproject.model.DTO.ErrorDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -12,10 +12,13 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class ErrorHandler extends ResponseEntityExceptionHandler {
 
 
-    @ExceptionHandler(value = {EmailExists.class, UsernameExists.class, InvalidEmail.class})
-    protected ResponseEntity<Object> handleConflict(RuntimeException ex, WebRequest request) {
-        String s = "Registration failed! " + ex.getMessage();
-        return handleExceptionInternal(ex, s, new HttpHeaders(), HttpStatus.NOT_ACCEPTABLE, request);
+    @ExceptionHandler(value = {InvalidUserData.class})
+    protected ResponseEntity<ErrorDTO> handleConflict(RuntimeException ex, WebRequest request) {
+        ErrorDTO errorDTO = new ErrorDTO();
+        errorDTO.setMessage("Invalid user data: " + ex.getMessage());
+        errorDTO.setStatus(HttpStatus.NOT_ACCEPTABLE.value());
+        return new ResponseEntity<>(errorDTO,HttpStatus.NOT_ACCEPTABLE );
     }
+
 
 }

@@ -15,9 +15,4 @@ public class UserToReturnDTO {
 
     private String email;
 
-    public UserToReturnDTO(Long id, String userName, String email) {
-        this.id = id;
-        this.userName = userName;
-        this.email = email;
-    }
 }
