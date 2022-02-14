@@ -6,9 +6,7 @@ import com.example.instagramproject.model.DTO.UserToReturnDTO;
 import com.example.instagramproject.model.entity.UserEntity;
 import com.example.instagramproject.service.UserService;
 import org.modelmapper.ModelMapper;
-import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/users")
@@ -70,6 +69,12 @@ public class UserController {
     }
 
 
+    @GetMapping("/find-by-fullName/{fullName}")
+    public ResponseEntity<UserToReturnDTO> getByFullName(@PathVariable(name = "fullName") String fullName) {
+        UserEntity userEntity = userService.getByFullName(fullName);
+        UserToReturnDTO userToReturnDTO = modelMapper.map(userEntity, UserToReturnDTO.class);
+        return ResponseEntity.ok(userToReturnDTO);
+    }
 
     @GetMapping("/all")
     @ResponseBody

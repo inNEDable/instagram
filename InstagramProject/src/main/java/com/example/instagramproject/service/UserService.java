@@ -73,6 +73,16 @@ public class UserService {
         }
     }
 
+    public UserEntity getByFullName(String fullName) {
+        Optional<UserEntity> userEntity = userRepository.findUserEntityByFullName(fullName);
+        if (userEntity.isPresent()) {
+            return userEntity.get();
+        }
+        else {
+            throw new InvalidUserData("User not found");
+        }
+    }
+
     public static boolean patternMatches(String emailAddress) {
         return Pattern.compile(EMAIL_REGEX)
                 .matcher(emailAddress)
