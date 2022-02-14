@@ -2,7 +2,7 @@
 *.class
 .idea
 *.idea
-
+.\src\main\resources\application.properties
 # Log file
 *.log
 

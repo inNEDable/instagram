@@ -42,10 +42,10 @@ public class UserController {
 
         session.setAttribute(SESSION, 1);
         session.setAttribute(LOGGED_FROM, request.getRemoteAddr());
-        
+
         UserToReturnDTO userToReturnDTO = modelMapper.map(userEntity, UserToReturnDTO.class);
         return new ResponseEntity<>(userToReturnDTO, HttpStatus.OK);
-        
+
     }
 
 
@@ -55,12 +55,21 @@ public class UserController {
         return new ResponseEntity<>(userToReturnDTO, HttpStatus.CREATED);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<UserToReturnDTO> getById(@PathVariable long id) {
+    @GetMapping("/find-by-id/{id}")
+    public ResponseEntity<UserToReturnDTO> getById(@PathVariable(name = "id") long id) {
         UserEntity userEntity = userService.getById(id);
         UserToReturnDTO userToReturnDTO = modelMapper.map(userEntity, UserToReturnDTO.class);
         return new ResponseEntity<>(userToReturnDTO, HttpStatus.OK);
     }
+
+    @GetMapping("/find-by-username/{username}")
+    public ResponseEntity<UserToReturnDTO> getByUsername(@PathVariable(name = "username") String username) {
+        UserEntity userEntity = userService.getByUsername(username);
+        UserToReturnDTO userToReturnDTO = modelMapper.map(userEntity, UserToReturnDTO.class);
+        return ResponseEntity.ok(userToReturnDTO);
+    }
+
+
 
     @GetMapping("/all")
     @ResponseBody
