@@ -5,6 +5,7 @@ import com.example.instagramproject.model.DTO.RequestUserDTO;
 import com.example.instagramproject.model.DTO.UserToReturnDTO;
 import com.example.instagramproject.model.entity.UserEntity;
 import com.example.instagramproject.model.repository.UserRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,9 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private ModelMapper modelMapper;
+
     public void logOut(RequestUserDTO userToLogOut, HttpSession session, HttpServletRequest request) {
         if (userToLogOut.getId() == null) throw new InvalidUserData("Please provide user ID ");
         sessionManager.authorizeSession(userToLogOut.getId(), session, request);
@@ -43,6 +47,21 @@ public class UserService {
             String hashedPassword = passwordEncoder.encode(requestUserDTO.getNewPassword());
             user.setPassword(hashedPassword);
             userRepository.save(user);
+        }
+        else {
+            throw new InvalidUserData("Please provide user ID");
+        }
+    }
+
+    public void edit(RequestUserDTO requestUserDTO, HttpSession session, HttpServletRequest request) {
+        sessionManager.authorizeSession(requestUserDTO.getId(), session, request);
+        Optional<UserEntity> userEntity = userRepository.findById((long)session.getAttribute(SessionManager.USER_ID));
+        if (userEntity.isPresent()) {
+            UserEntity user = modelMapper.map(userEntity.get(), UserEntity.class);
+            userRepository.save(user);
+        }
+        else {
+            throw new InvalidUserData("Please provide user ID");
         }
     }
 

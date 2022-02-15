@@ -33,11 +33,16 @@ public class UserController {
     }
 
     @PutMapping("/change-password")
-    public ResponseEntity<UserToReturnDTO> changePassword(@RequestBody RequestUserDTO user, HttpSession session, HttpServletRequest request) {
-        System.out.println("LOGOUT ATTEMPT");
-        userService.changePassword(user, session, request);
-        UserToReturnDTO userToReturnDTO = modelMapper.map(user, UserToReturnDTO.class);
-        System.out.println(userToReturnDTO);
+    public ResponseEntity<UserToReturnDTO> changePassword(@RequestBody RequestUserDTO requestUserDTO, HttpSession session, HttpServletRequest request) {
+        userService.changePassword(requestUserDTO, session, request);
+        UserToReturnDTO userToReturnDTO = modelMapper.map(requestUserDTO, UserToReturnDTO.class);
+        return new ResponseEntity<>(userToReturnDTO, HttpStatus.OK);
+    }
+
+    @PutMapping("/edit-profile-info")
+    public ResponseEntity<UserToReturnDTO> edit(@RequestBody RequestUserDTO requestUserDTO, HttpSession session, HttpServletRequest request) {
+        userService.edit(requestUserDTO, session, request);
+        UserToReturnDTO userToReturnDTO = modelMapper.map(requestUserDTO, UserToReturnDTO.class);
         return new ResponseEntity<>(userToReturnDTO, HttpStatus.OK);
     }
 
