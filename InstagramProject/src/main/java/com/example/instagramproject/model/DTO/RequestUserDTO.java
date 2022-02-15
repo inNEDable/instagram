@@ -23,8 +23,9 @@ public class RequestUserDTO {
 
     private String password;
 
-    private String confirmPassword;
+    private String newPassword;
 
+    private String confirmPassword;
 
     public UserEntity toEntity() {
         return new UserEntity(this.username, this.email, this.password, this.fullName);

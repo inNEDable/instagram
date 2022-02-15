@@ -6,6 +6,7 @@ import com.example.instagramproject.model.DTO.UserToReturnDTO;
 import com.example.instagramproject.model.entity.UserEntity;
 import com.example.instagramproject.model.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
@@ -24,11 +25,25 @@ public class UserService {
     @Autowired
     private SessionManager sessionManager;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     public void logOut(RequestUserDTO userToLogOut, HttpSession session, HttpServletRequest request) {
         if (userToLogOut.getId() == null) throw new InvalidUserData("Please provide user ID ");
         sessionManager.authorizeSession(userToLogOut.getId(), session, request);
         sessionManager.logOut(session);
 
+    }
+
+    public void changePassword(RequestUserDTO requestUserDTO, HttpSession session, HttpServletRequest request) {
+        sessionManager.authorizeSession(requestUserDTO.getId(), session, request);
+        Optional<UserEntity> userEntity = userRepository.findById((long)session.getAttribute(SessionManager.USER_ID));
+        if (userEntity.isPresent()) {
+            UserEntity user = userEntity.get();
+            String hashedPassword = passwordEncoder.encode(requestUserDTO.getNewPassword());
+            user.setPassword(hashedPassword);
+            userRepository.save(user);
+        }
     }
 
     public UserToReturnDTO registerUser(RequestUserDTO requestUserDTO) {

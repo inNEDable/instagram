@@ -1,6 +1,5 @@
 package com.example.instagramproject.controler;
 
-import com.example.instagramproject.exceptions.InvalidUserData;
 import com.example.instagramproject.model.DTO.RequestUserDTO;
 import com.example.instagramproject.model.DTO.UserToReturnDTO;
 import com.example.instagramproject.model.entity.UserEntity;
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/users")
@@ -30,6 +28,15 @@ public class UserController {
         System.out.println("LOGOUT ATTEMPT");
         userService.logOut(userToLogout, session, request);
         UserToReturnDTO userToReturnDTO = modelMapper.map(userToLogout, UserToReturnDTO.class);
+        System.out.println(userToReturnDTO);
+        return new ResponseEntity<>(userToReturnDTO, HttpStatus.OK);
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<UserToReturnDTO> changePassword(@RequestBody RequestUserDTO user, HttpSession session, HttpServletRequest request) {
+        System.out.println("LOGOUT ATTEMPT");
+        userService.changePassword(user, session, request);
+        UserToReturnDTO userToReturnDTO = modelMapper.map(user, UserToReturnDTO.class);
         System.out.println(userToReturnDTO);
         return new ResponseEntity<>(userToReturnDTO, HttpStatus.OK);
     }
@@ -73,7 +80,6 @@ public class UserController {
         UserToReturnDTO userToReturnDTO = modelMapper.map(userEntity, UserToReturnDTO.class);
         return ResponseEntity.ok(userToReturnDTO);
     }
-
 
     @GetMapping("/find-by-fullName/{fullName}")
     public ResponseEntity<UserToReturnDTO> getByFullName(@PathVariable(name = "fullName") String fullName) {
