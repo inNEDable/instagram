@@ -4,8 +4,8 @@ import lombok.*;
 
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class UserToReturnDTO {
 
     private Long id;

@@ -13,11 +13,19 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
 
 
     @ExceptionHandler(value = {InvalidUserData.class})
-    protected ResponseEntity<ErrorDTO> handleConflict(RuntimeException ex, WebRequest request) {
+    protected ResponseEntity<ErrorDTO> handleConflict(RuntimeException ex) {
         ErrorDTO errorDTO = new ErrorDTO();
         errorDTO.setMessage("Invalid user data: " + ex.getMessage());
         errorDTO.setStatus(HttpStatus.NOT_ACCEPTABLE.value());
         return new ResponseEntity<>(errorDTO,HttpStatus.NOT_ACCEPTABLE );
+    }
+
+    @ExceptionHandler(value = {UnauthorizedAccess.class})
+    protected ResponseEntity<ErrorDTO> unauthorizedAccess (RuntimeException ex) {
+        ErrorDTO errorDTO = new ErrorDTO();
+        errorDTO.setMessage("Unauthorized access : " + ex.getMessage());
+        errorDTO.setStatus(HttpStatus.UNAUTHORIZED.value());
+        return new ResponseEntity<>(errorDTO,HttpStatus.UNAUTHORIZED );
     }
 
 

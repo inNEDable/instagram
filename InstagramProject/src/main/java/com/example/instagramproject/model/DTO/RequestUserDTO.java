@@ -3,13 +3,15 @@ package com.example.instagramproject.model.DTO;
 import com.example.instagramproject.model.entity.UserEntity;
 import lombok.*;
 
+import javax.validation.constraints.Email;
+
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserToRegisterDTO {
+public class RequestUserDTO {
 
     private Long id;
 

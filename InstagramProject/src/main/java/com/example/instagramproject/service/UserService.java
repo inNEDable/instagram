@@ -1,13 +1,15 @@
 package com.example.instagramproject.service;
 
 import com.example.instagramproject.exceptions.InvalidUserData;
-import com.example.instagramproject.model.DTO.UserToRegisterDTO;
+import com.example.instagramproject.model.DTO.RequestUserDTO;
 import com.example.instagramproject.model.DTO.UserToReturnDTO;
 import com.example.instagramproject.model.entity.UserEntity;
 import com.example.instagramproject.model.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -19,11 +21,21 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    public UserToReturnDTO registerUser(UserToRegisterDTO userToRegisterDTO) {
-        String username = userToRegisterDTO.getUsername();
-        String email = userToRegisterDTO.getEmail();
-        String password = userToRegisterDTO.getPassword();
-        String confirmPassword = userToRegisterDTO.getConfirmPassword();
+    @Autowired
+    private SessionManager sessionManager;
+
+    public void logOut(RequestUserDTO userToLogOut, HttpSession session, HttpServletRequest request) {
+        if (userToLogOut.getId() == null) throw new InvalidUserData("Please provide user ID ");
+        sessionManager.authorizeSession(userToLogOut.getId(), session, request);
+        sessionManager.logOut(session);
+
+    }
+
+    public UserToReturnDTO registerUser(RequestUserDTO requestUserDTO) {
+        String username = requestUserDTO.getUsername();
+        String email = requestUserDTO.getEmail();
+        String password = requestUserDTO.getPassword();
+        String confirmPassword = requestUserDTO.getConfirmPassword();
 
         if (username.isBlank()) throw new InvalidUserData("Username can't be blank!");
         if (!password.equals(confirmPassword)) throw new InvalidUserData("Passwords don't match");
@@ -32,12 +44,12 @@ public class UserService {
 
         UserEntity userEntity;
         if (userRepository.findUserEntityByEmail(email) == null){
-            userEntity = userToRegisterDTO.toEntity();
+            userEntity = requestUserDTO.toEntity();
             userRepository.save(userEntity);
         } else throw new InvalidUserData("Email already exist");
 
 
-        //TODO: sendEmailVerification(userEntity.getEmail()); Class.sendEmail("http://123.453.456.45:8080/confirm/" + userEntity.getId())
+        //TODO: sendEmailVerification(userEntity.getEmail()); SomeClass.sendEmail("http://123.453.456.45:8080/confirm/" + userEntity.getId())
 
 
         return UserToReturnDTO.builder()
@@ -47,10 +59,6 @@ public class UserService {
                 .email(userEntity.getEmail())
                 .build();
     }
-
-//    public void removeUserById(long id) {
-//        Optional<UserEntity> userEntity = userRepository.findById(id);
-//    }
 
     public UserEntity getById(long id) {
 
@@ -83,21 +91,46 @@ public class UserService {
         }
     }
 
-    public static boolean patternMatches(String emailAddress) {
-        return Pattern.compile(EMAIL_REGEX)
-                .matcher(emailAddress)
-                .matches();
+    public UserEntity login(String username, String email, String password, HttpSession session, HttpServletRequest request) {
+        UserEntity userEntity;
+        if (password == null) throw new InvalidUserData("Password required");
+        if (username == null && email == null) throw new InvalidUserData("Username OR Email needed for login!");
+        if (username == null) userEntity = loginWithEmail(email, password);
+        else userEntity = loginWithUsername(username, password);
+
+        sessionManager.login(userEntity.getId(), session, request);
+
+        return userEntity;
     }
 
-    public UserEntity loginWithEmail(String email, String password) {
+    private UserEntity loginWithEmail(String email, String password) {
         UserEntity userEntity = userRepository.findUserEntityByEmailAndPassword(email, password);
         if (userEntity == null) throw new InvalidUserData("Invalid email or password");
         return userEntity;
     }
 
-    public UserEntity loginWithUsername(String username, String password) {
+    private UserEntity loginWithUsername(String username, String password) {
         UserEntity userEntity = userRepository.findUserEntityByUsernameAndPassword(username, password);
         if (userEntity == null) throw new InvalidUserData("Invalid username or password");
         return userEntity;
+    }
+
+    public UserEntity deleteUser(RequestUserDTO userToDelete, HttpSession session, HttpServletRequest request) {
+
+        if (userToDelete.getId() == null) throw new InvalidUserData("Please provide user ID ");
+
+        Optional<UserEntity> userEntity = userRepository.findById(userToDelete.getId());
+        if (userEntity.isEmpty()) throw new InvalidUserData("No such user found");
+
+        sessionManager.authorizeSession(userEntity.get().getId(), session, request);
+        userRepository.deleteById(userToDelete.getId());
+
+        return userEntity.get();
+    }
+
+    public static boolean patternMatches(String emailAddress) {
+        return Pattern.compile(EMAIL_REGEX)
+                .matcher(emailAddress)
+                .matches();
     }
 }

@@ -1,7 +1,7 @@
 package com.example.instagramproject.controler;
 
 import com.example.instagramproject.exceptions.InvalidUserData;
-import com.example.instagramproject.model.DTO.UserToRegisterDTO;
+import com.example.instagramproject.model.DTO.RequestUserDTO;
 import com.example.instagramproject.model.DTO.UserToReturnDTO;
 import com.example.instagramproject.model.entity.UserEntity;
 import com.example.instagramproject.service.UserService;
@@ -13,44 +13,50 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.util.List;
-import java.util.Optional;
+import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
 
-    public static final String SESSION = "Session";
-    public static final String LOGGED_FROM = "LoggedFrom";
     @Autowired
     private UserService userService;
 
     @Autowired
     private ModelMapper modelMapper;
 
-    @PostMapping("/login")
-    public ResponseEntity<UserToReturnDTO> login (@RequestBody UserToRegisterDTO userToLogin, HttpSession session, HttpServletRequest request){
-        String username = userToLogin.getUsername();
-        String email = userToLogin.getEmail();
-        String password = userToLogin.getPassword();
-        UserEntity userEntity;
-        if (password == null) throw new InvalidUserData("Password required");
-        if (username == null && email == null) throw new InvalidUserData("Username OR Email needed for login!");
-        if (username == null) userEntity = userService.loginWithEmail(email, password);
-                else userEntity = userService.loginWithUsername(username, password);
+    @PutMapping("/logout")
+    public ResponseEntity<UserToReturnDTO> logOut (@RequestBody RequestUserDTO userToLogout, HttpSession session, HttpServletRequest request ){
+        System.out.println("LOGOUT ATTEMPT");
+        userService.logOut(userToLogout, session, request);
+        UserToReturnDTO userToReturnDTO = modelMapper.map(userToLogout, UserToReturnDTO.class);
+        System.out.println(userToReturnDTO);
+        return new ResponseEntity<>(userToReturnDTO, HttpStatus.OK);
+    }
 
-        session.setAttribute(SESSION, 1);
-        session.setAttribute(LOGGED_FROM, request.getRemoteAddr());
+    @DeleteMapping("/delete")
+    public ResponseEntity<UserToReturnDTO> deleteUser (@RequestBody RequestUserDTO userToDelete, HttpSession session, HttpServletRequest request){
+        UserEntity userEntity = userService.deleteUser(userToDelete, session, request);
 
         UserToReturnDTO userToReturnDTO = modelMapper.map(userEntity, UserToReturnDTO.class);
         return new ResponseEntity<>(userToReturnDTO, HttpStatus.OK);
-
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<UserToReturnDTO> login (@RequestBody RequestUserDTO userToLogin, HttpSession session, HttpServletRequest request){
+        String username = userToLogin.getUsername();
+        String email = userToLogin.getEmail();
+        String password = userToLogin.getPassword();
+
+        UserEntity userEntity = userService.login(username, email, password, session, request);
+        UserToReturnDTO userToReturnDTO = modelMapper.map(userEntity, UserToReturnDTO.class);
+
+        return new ResponseEntity<>(userToReturnDTO, HttpStatus.OK);
+    }
 
     @PostMapping("/register")
-    public ResponseEntity<UserToReturnDTO> registerUser (@RequestBody UserToRegisterDTO userToRegisterDTO){
-        UserToReturnDTO userToReturnDTO =  userService.registerUser(userToRegisterDTO);
+    public ResponseEntity<UserToReturnDTO> registerUser (@RequestBody RequestUserDTO requestUserDTO){
+        UserToReturnDTO userToReturnDTO =  userService.registerUser(requestUserDTO);
         return new ResponseEntity<>(userToReturnDTO, HttpStatus.CREATED);
     }
 
@@ -74,13 +80,6 @@ public class UserController {
         UserEntity userEntity = userService.getByFullName(fullName);
         UserToReturnDTO userToReturnDTO = modelMapper.map(userEntity, UserToReturnDTO.class);
         return ResponseEntity.ok(userToReturnDTO);
-    }
-
-    @GetMapping("/all")
-    @ResponseBody
-    public List<UserEntity> getAllUsers() {
-        //Todo method body..
-        return null;
     }
 
 
