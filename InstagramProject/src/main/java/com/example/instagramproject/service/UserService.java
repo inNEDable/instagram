@@ -5,6 +5,7 @@ import com.example.instagramproject.model.DTO.RequestUserDTO;
 import com.example.instagramproject.model.DTO.UserToReturnDTO;
 import com.example.instagramproject.model.entity.UserEntity;
 import com.example.instagramproject.model.repository.UserRepository;
+import com.example.instagramproject.util.Validator;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,6 +20,7 @@ import java.util.regex.Pattern;
 public class UserService {
 
     private static final String EMAIL_REGEX = "(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])";
+    private static final String WEBSITE = "\\b(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
 
     @Autowired
     private UserRepository userRepository;
@@ -75,10 +77,14 @@ public class UserService {
     }
 
     public UserToReturnDTO edit(RequestUserDTO requestUserDTO, HttpSession session, HttpServletRequest request) {
-        System.out.println(requestUserDTO);
         sessionManager.authorizeSession(requestUserDTO.getId(), session, request);
 
         UserEntity user = userRepository.findById(requestUserDTO.getId()).orElseThrow(() -> new InvalidUserData("Please provide user ID"));
+        Validator.validateUsernameExists(userRepository, requestUserDTO.getUsername(), "This username isn't available. Please try another");
+        Validator.validateEmailExists(userRepository, requestUserDTO.getEmail(), "Another account is using " + requestUserDTO.getEmail());
+        if (!validateEmailPatternMatches(requestUserDTO.getEmail())) throw new InvalidUserData("Enter a valid email address.");
+        if (!validateWebSitePatternMatches(requestUserDTO.getWebsite())) throw new InvalidUserData("Enter a valid website.");
+
         UserEntity updatedUserEntity = modelMapper.map(requestUserDTO, UserEntity.class);
 
         updatedUserEntity.setPassword(user.getPassword());
@@ -95,9 +101,8 @@ public class UserService {
 
         if (username.isBlank()) throw new InvalidUserData("Username can't be blank!");
         if (!password.equals(confirmPassword)) throw new InvalidUserData("Passwords don't match");
-        if (!patternMatches(email)) throw new InvalidUserData("Invalid email");
-        if (userRepository.findUserEntityByUsername(username).isPresent())
-            throw new InvalidUserData("Username already exist");
+        if (!validateEmailPatternMatches(email)) throw new InvalidUserData("Invalid email");
+        Validator.validateUsernameExists(userRepository, username, "This username isn't available. Please try another.");
 
         UserEntity userEntity;
         if (!userRepository.findUserEntityByEmail(email).isPresent()) {
@@ -163,9 +168,15 @@ public class UserService {
         return modelMapper.map(userEntity, UserToReturnDTO.class);
     }
 
-    public static boolean patternMatches(String emailAddress) {
+    public static boolean validateEmailPatternMatches(String emailAddress) {
         return Pattern.compile(EMAIL_REGEX)
                 .matcher(emailAddress)
+                .matches();
+    }
+
+    private boolean validateWebSitePatternMatches(String website) {
+        return Pattern.compile(WEBSITE)
+                .matcher(website)
                 .matches();
     }
 }
