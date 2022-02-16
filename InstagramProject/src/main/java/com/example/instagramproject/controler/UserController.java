@@ -22,9 +22,7 @@ public class UserController {
 
     @PutMapping("/logout")
     public ResponseEntity<UserToReturnDTO> logOut(@RequestBody RequestUserDTO userToLogout, HttpSession session, HttpServletRequest request) {
-        System.out.println("LOGOUT ATTEMPT");
         UserToReturnDTO userToReturnDTO = userService.logOut(userToLogout, session, request);
-        System.out.println(userToReturnDTO);
         return new ResponseEntity<>(userToReturnDTO, HttpStatus.OK);
     }
 
