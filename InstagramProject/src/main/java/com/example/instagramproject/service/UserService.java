@@ -44,6 +44,12 @@ public class UserService {
         Optional<UserEntity> userEntity = userRepository.findById((long)session.getAttribute(SessionManager.USER_ID));
         if (userEntity.isPresent()) {
             UserEntity user = userEntity.get();
+            if (!user.getPassword().equals(requestUserDTO.getPassword())) {
+                throw new InvalidUserData("Please provide valid password");
+            }
+            if (!requestUserDTO.getNewPassword().equals(requestUserDTO.getConfirmPassword())) {
+                throw new InvalidUserData("Please provide valid conf password");
+            }
             String hashedPassword = passwordEncoder.encode(requestUserDTO.getNewPassword());
             user.setPassword(hashedPassword);
             userRepository.save(user);
