@@ -1,12 +1,21 @@
 package com.example.instagramproject.model.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Table(name = "posts")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class PostEntity {
 
     // id, user_id, date_time, like_count, comment_count, text
@@ -15,8 +24,8 @@ public class PostEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id")
-    private int userId;
+//    @Column(name = "user_id")
+//    private Long userId;
 
     @Column(name = "date_time")
     @DateTimeFormat(pattern = "yyyy/MM/dd hh:mm:ss")
@@ -30,4 +39,8 @@ public class PostEntity {
 
     @Column
     private String text;
+
+    @OneToMany(mappedBy= "post")
+    private Set<PostMediaEntity> postMediaEntities;
+
 }
