@@ -37,9 +37,9 @@ public class RequestUserDTO {
 
     private LocalDate birthDate;
 
-    protected String website;
+    private String website;
 
-    protected String bio;
+    private String bio;
 
     public UserEntity toEntity() {
         return new UserEntity(this.username, this.email, this.password, this.fullName);

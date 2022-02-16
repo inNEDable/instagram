@@ -20,7 +20,6 @@ import java.util.regex.Pattern;
 public class UserService {
 
 
-
     @Autowired
     private UserRepository userRepository;
 
@@ -81,8 +80,10 @@ public class UserService {
         UserEntity user = userRepository.findById(requestUserDTO.getId()).orElseThrow(() -> new InvalidUserData("Please provide user ID"));
         Validator.validateUsernameExists(userRepository, requestUserDTO.getUsername(), "This username isn't available. Please try another");
         Validator.validateEmailExists(userRepository, requestUserDTO.getEmail(), "Another account is using " + requestUserDTO.getEmail());
-        if (!Validator.validateEmailPatternMatches(requestUserDTO.getEmail())) throw new InvalidUserData("Enter a valid email address.");
-        if (!Validator.validateWebSitePatternMatches(requestUserDTO.getWebsite())) throw new InvalidUserData("Enter a valid website.");
+        if (!Validator.validateEmailPatternMatches(requestUserDTO.getEmail()))
+            throw new InvalidUserData("Enter a valid email address.");
+        if (!Validator.validateWebSitePatternMatches(requestUserDTO.getWebsite()))
+            throw new InvalidUserData("Enter a valid website.");
 
         UserEntity updatedUserEntity = modelMapper.map(requestUserDTO, UserEntity.class);
 
@@ -99,18 +100,16 @@ public class UserService {
         String confirmPassword = requestUserDTO.getConfirmPassword();
 
         if (username.isBlank()) throw new InvalidUserData("Username can't be blank!");
+        Validator.validateUsernameExists(userRepository, username, "This username isn't available. Please try another.");
         if (!password.equals(confirmPassword)) throw new InvalidUserData("Passwords don't match");
         if (!Validator.validateEmailPatternMatches(email)) throw new InvalidUserData("Invalid email");
-        Validator.validateUsernameExists(userRepository, username, "This username isn't available. Please try another.");
+        if (!Validator.validateWebSitePatternMatches(requestUserDTO.getWebsite())) throw new InvalidUserData("Enter a valid website.");
+        Validator.validateEmailExists(userRepository, requestUserDTO.getEmail(), "Another account is using " + requestUserDTO.getEmail());
 
-        UserEntity userEntity;
-        if (!userRepository.findUserEntityByEmail(email).isPresent()) {
-            userEntity = modelMapper.map(requestUserDTO.toEntity(), UserEntity.class);
-            String hashedPassword = passwordEncoder.encode(requestUserDTO.getPassword());
-            userEntity.setPassword(hashedPassword);
-            userRepository.save(userEntity);
-        }
-        else throw new InvalidUserData("Email already exist");
+        UserEntity userEntity = modelMapper.map(requestUserDTO, UserEntity.class);
+        String hashedPassword = passwordEncoder.encode(requestUserDTO.getPassword());
+        userEntity.setPassword(hashedPassword);
+        userRepository.save(userEntity);
 
         //TODO: sendEmailVerification(userEntity.getEmail()); SomeClass.sendEmail("http://123.453.456.45:8080/confirm/" + userEntity.getId())
 
@@ -138,32 +137,28 @@ public class UserService {
     }
 
     private UserEntity loginWithEmail(String email, String password) {
-        Optional<UserEntity> userEntity = userRepository.findUserEntityByEmail(email);
-        if (!userEntity.isPresent()) throw new InvalidUserData("Invalid email");
-        boolean passwordMatches = passwordEncoder.matches(password, userEntity.get().getPassword());
-        if (!passwordMatches) {
-            throw new InvalidUserData("Invalid password");
-        }
-        return userEntity.get();
+        UserEntity userEntity = userRepository.findUserEntityByEmail(email).orElseThrow(() -> new InvalidUserData("Invalid email"));
+        boolean passwordMatches = passwordEncoder.matches(password, userEntity.getPassword());
+        if (!passwordMatches) throw new InvalidUserData("Invalid password");
+
+        return userEntity;
     }
 
     private UserEntity loginWithUsername(String username, String password) {
-        Optional<UserEntity> userEntity = userRepository.findUserEntityByUsername(username);
-        if (!userEntity.isPresent()) throw new InvalidUserData("Invalid username");
-        boolean passwordMatches = passwordEncoder.matches(password, userEntity.get().getPassword());
-        if (!passwordMatches) {
-            throw new InvalidUserData("Invalid password");
-        }
-        return userEntity.get();
+        UserEntity userEntity = userRepository.findUserEntityByUsername(username).orElseThrow(() -> new InvalidUserData("Invalid username"));
+        boolean passwordMatches = passwordEncoder.matches(password, userEntity.getPassword());
+        if (!passwordMatches) throw new InvalidUserData("Invalid password");
+
+        return userEntity;
     }
 
     public UserToReturnDTO deleteUser(RequestUserDTO userToDelete, HttpSession session, HttpServletRequest request) {
 
         if (userToDelete.getId() == null) throw new InvalidUserData("Please provide user ID ");
-        Optional<UserEntity> userEntity = userRepository.findById(userToDelete.getId());
-        if (userEntity.isEmpty()) throw new InvalidUserData("No such user found");
-        sessionManager.authorizeSession(userEntity.get().getId(), session, request);
+        UserEntity userEntity = userRepository.findById(userToDelete.getId()).orElseThrow(() -> new InvalidUserData("No such user found"));
+        sessionManager.authorizeSession(userEntity.getId(), session, request);
         userRepository.deleteById(userToDelete.getId());
+
         return modelMapper.map(userEntity, UserToReturnDTO.class);
     }
 
