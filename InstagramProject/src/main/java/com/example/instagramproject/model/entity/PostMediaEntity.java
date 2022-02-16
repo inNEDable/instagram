@@ -6,7 +6,8 @@ import javax.persistence.*;
 @Table(name = "post_media")
 public class PostMediaEntity {
 
-    //id, url, post_id
+    // id, url, post_id
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

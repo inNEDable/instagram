@@ -14,7 +14,7 @@ import java.time.LocalDate;
 
 public class UserEntity {
 
-    //`id`, `username`, `full_name`, `email`, `pass`, `profile_pic`, `phone_number`, `gender`, `birth_date`, `website`, `bio`, `is_verified`
+    // id, username, full_name, email, pass, profile_pic, phone_number, gender, birth_date, website, bio, is_verified
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -51,8 +51,6 @@ public class UserEntity {
     @Column
     protected String bio;
 
-//    @OneToMany(mappedBy = "images")
-//    protected List<Image> images;
 
     @Column(name = "is_verified")
     protected boolean isVerified;

@@ -8,13 +8,12 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "comments")
 public class CommentEntity {
-
-    //id, data_time, user_id, text, like_count, post_id, parent_comment_id
+    //id, data_time, user_id, text, like_count, media, post_id, parent_comment_id
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "date_time")
+    @Column(name = "data_time")
     @DateTimeFormat(pattern = "yyyy/MM/dd hh:mm:ss")
     private LocalDateTime dateCreated;
 
@@ -24,8 +23,11 @@ public class CommentEntity {
     @Column
     private String text;
 
-    @Column(name = "lake_count")
+    @Column(name = "like_count")
     private Long likeCount;
+
+    @Column
+    private String media;
 
     @Column(name = "post_id")
     private int postID;

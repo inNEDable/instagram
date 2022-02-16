@@ -6,7 +6,7 @@ import javax.persistence.*;
 @Table(name = "tags")
 public class TagEntity {
 
-    //id, text
+    // id, text
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

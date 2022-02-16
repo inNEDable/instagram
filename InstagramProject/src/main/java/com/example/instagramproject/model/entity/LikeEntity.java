@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Table(name = "likes")
 public class LikeEntity {
 
-    //id, user_id, date_time
+    // id, user_id, date_time, post_id, comment_id
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,4 +21,10 @@ public class LikeEntity {
     @Column(name = "date_time")
     @DateTimeFormat(pattern = "yyyy/MM/dd hh:mm:ss")
     private LocalDateTime dateTime;
+
+    @Column(name = "post_id")
+    private int postId;
+
+    @Column(name = "comment_id")
+    private int commentId;
 }

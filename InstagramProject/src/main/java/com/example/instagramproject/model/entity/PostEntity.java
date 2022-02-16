@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Table(name = "posts")
 public class PostEntity {
 
-    //id, user_id, date_time, like_count, comment_count, text
+    // id, user_id, date_time, like_count, comment_count, text
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

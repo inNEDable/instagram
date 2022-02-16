@@ -39,6 +39,18 @@ public class UserService {
 
     }
 
+    public UserEntity login(String username, String email, String password, HttpSession session, HttpServletRequest request) {
+        UserEntity userEntity;
+        if (password == null) throw new InvalidUserData("Password required");
+        if (username == null && email == null) throw new InvalidUserData("Username OR Email needed for login!");
+        if (username == null) userEntity = loginWithEmail(email, password);
+        else userEntity = loginWithUsername(username, password);
+
+        sessionManager.login(userEntity.getId(), session, request);
+
+        return userEntity;
+    }
+
     public void changePassword(RequestUserDTO requestUserDTO, HttpSession session, HttpServletRequest request) {
         sessionManager.authorizeSession(requestUserDTO.getId(), session, request);
         Optional<UserEntity> userEntity = userRepository.findById((long)session.getAttribute(SessionManager.USER_ID));
@@ -129,18 +141,6 @@ public class UserService {
         else {
             throw new InvalidUserData("User not found");
         }
-    }
-
-    public UserEntity login(String username, String email, String password, HttpSession session, HttpServletRequest request) {
-        UserEntity userEntity;
-        if (password == null) throw new InvalidUserData("Password required");
-        if (username == null && email == null) throw new InvalidUserData("Username OR Email needed for login!");
-        if (username == null) userEntity = loginWithEmail(email, password);
-        else userEntity = loginWithUsername(username, password);
-
-        sessionManager.login(userEntity.getId(), session, request);
-
-        return userEntity;
     }
 
     private UserEntity loginWithEmail(String email, String password) {
