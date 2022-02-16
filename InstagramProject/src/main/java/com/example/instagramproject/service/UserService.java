@@ -32,14 +32,19 @@ public class UserService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public void logOut(RequestUserDTO userToLogOut, HttpSession session, HttpServletRequest request) {
+    public UserToReturnDTO logOut(RequestUserDTO userToLogOut, HttpSession session, HttpServletRequest request) {
         if (userToLogOut.getId() == null) throw new InvalidUserData("Please provide user ID ");
+
         sessionManager.authorizeSession(userToLogOut.getId(), session, request);
         sessionManager.logOut(session);
 
+        return modelMapper.map(userToLogOut, UserToReturnDTO.class);
     }
 
-    public UserEntity login(String username, String email, String password, HttpSession session, HttpServletRequest request) {
+    public UserToReturnDTO login(RequestUserDTO userToLogin, HttpSession session, HttpServletRequest request) {
+        String username = userToLogin.getUsername();
+        String email = userToLogin.getEmail();
+        String password = userToLogin.getPassword();
         UserEntity userEntity;
         if (password == null) throw new InvalidUserData("Password required");
         if (username == null && email == null) throw new InvalidUserData("Username OR Email needed for login!");
@@ -48,39 +53,38 @@ public class UserService {
 
         sessionManager.login(userEntity.getId(), session, request);
 
-        return userEntity;
+        return modelMapper.map(userEntity, UserToReturnDTO.class);
     }
 
-    public void changePassword(RequestUserDTO requestUserDTO, HttpSession session, HttpServletRequest request) {
+    public UserToReturnDTO changePassword(RequestUserDTO requestUserDTO, HttpSession session, HttpServletRequest request) {
         sessionManager.authorizeSession(requestUserDTO.getId(), session, request);
-        Optional<UserEntity> userEntity = userRepository.findById((long)session.getAttribute(SessionManager.USER_ID));
-        if (userEntity.isPresent()) {
-            UserEntity user = userEntity.get();
-            if (!user.getPassword().equals(requestUserDTO.getPassword())) {
-                throw new InvalidUserData("Please provide valid password");
-            }
-            if (!requestUserDTO.getNewPassword().equals(requestUserDTO.getConfirmPassword())) {
-                throw new InvalidUserData("Please provide valid conf password");
-            }
-            String hashedPassword = passwordEncoder.encode(requestUserDTO.getNewPassword());
-            user.setPassword(hashedPassword);
-            userRepository.save(user);
+        UserEntity userEntity = userRepository.findById((long) session.getAttribute(SessionManager.USER_ID)).orElseThrow(() -> new InvalidUserData("Please provide user ID"));
+
+        if (!passwordEncoder.matches(requestUserDTO.getPassword(), userEntity.getPassword())) {
+            throw new InvalidUserData("Please provide valid password");
         }
-        else {
-            throw new InvalidUserData("Please provide user ID");
+        if (!requestUserDTO.getNewPassword().equals(requestUserDTO.getConfirmPassword())) {
+            throw new InvalidUserData("Please provide valid conf password");
         }
+
+        String hashedPassword = passwordEncoder.encode(requestUserDTO.getNewPassword());
+        userEntity.setPassword(hashedPassword);
+        userRepository.save(userEntity);
+
+        return modelMapper.map(requestUserDTO, UserToReturnDTO.class);
     }
 
-    public void edit(RequestUserDTO requestUserDTO, HttpSession session, HttpServletRequest request) {
+    public UserToReturnDTO edit(RequestUserDTO requestUserDTO, HttpSession session, HttpServletRequest request) {
+        System.out.println(requestUserDTO);
         sessionManager.authorizeSession(requestUserDTO.getId(), session, request);
-        Optional<UserEntity> userEntity = userRepository.findById((long)session.getAttribute(SessionManager.USER_ID));
-        if (userEntity.isPresent()) {
-            UserEntity user = modelMapper.map(userEntity.get(), UserEntity.class);
-            userRepository.save(user);
-        }
-        else {
-            throw new InvalidUserData("Please provide user ID");
-        }
+
+        UserEntity user = userRepository.findById(requestUserDTO.getId()).orElseThrow(() -> new InvalidUserData("Please provide user ID"));
+        UserEntity updatedUserEntity = modelMapper.map(requestUserDTO, UserEntity.class);
+
+        updatedUserEntity.setPassword(user.getPassword());
+        userRepository.save(updatedUserEntity);
+
+        return modelMapper.map(updatedUserEntity, UserToReturnDTO.class);
     }
 
     public UserToReturnDTO registerUser(RequestUserDTO requestUserDTO) {
@@ -92,80 +96,71 @@ public class UserService {
         if (username.isBlank()) throw new InvalidUserData("Username can't be blank!");
         if (!password.equals(confirmPassword)) throw new InvalidUserData("Passwords don't match");
         if (!patternMatches(email)) throw new InvalidUserData("Invalid email");
-        if (userRepository.findUserEntityByUsername(username) != null) throw new InvalidUserData("Username already exist");
+        if (userRepository.findUserEntityByUsername(username).isPresent())
+            throw new InvalidUserData("Username already exist");
 
         UserEntity userEntity;
-        if (userRepository.findUserEntityByEmail(email) == null){
-            userEntity = requestUserDTO.toEntity();
+        if (!userRepository.findUserEntityByEmail(email).isPresent()) {
+            userEntity = modelMapper.map(requestUserDTO.toEntity(), UserEntity.class);
+            String hashedPassword = passwordEncoder.encode(requestUserDTO.getPassword());
+            userEntity.setPassword(hashedPassword);
             userRepository.save(userEntity);
-        } else throw new InvalidUserData("Email already exist");
-
+        }
+        else throw new InvalidUserData("Email already exist");
 
         //TODO: sendEmailVerification(userEntity.getEmail()); SomeClass.sendEmail("http://123.453.456.45:8080/confirm/" + userEntity.getId())
 
-
         return UserToReturnDTO.builder()
                 .id(userEntity.getId())
-                .userName(userEntity.getUsername())
+                .username(userEntity.getUsername())
                 .fullName(userEntity.getFullName())
                 .email(userEntity.getEmail())
                 .build();
     }
 
-    public UserEntity getById(long id) {
-
-        Optional<UserEntity> optionalUserEntity = userRepository.findById(id);
-        if (optionalUserEntity.isPresent()) {
-            return optionalUserEntity.get();
-        }
-        else {
-            throw new InvalidUserData("User not found");
-        }
+    public UserToReturnDTO getById(long id) {
+        UserEntity userEntity = userRepository.findById(id).orElseThrow(() -> new InvalidUserData("User with " + id + " does not exists."));
+        return modelMapper.map(userEntity, UserToReturnDTO.class);
     }
 
-    public UserEntity getByUsername(String username) {
-        UserEntity userEntity = userRepository.findUserEntityByUsername(username);
-        if (userEntity != null) {
-            return userEntity;
-        }
-        else {
-            throw new InvalidUserData("User not found");
-        }
+    public UserToReturnDTO getByUsername(String username) {
+        UserEntity userEntity = userRepository.findUserEntityByUsername(username).orElseThrow(() -> new InvalidUserData("Username '" + username + "' does not exists."));
+        return modelMapper.map(userEntity, UserToReturnDTO.class);
     }
 
-    public UserEntity getByFullName(String fullName) {
-        Optional<UserEntity> userEntity = userRepository.findUserEntityByFullName(fullName);
-        if (userEntity.isPresent()) {
-            return userEntity.get();
-        }
-        else {
-            throw new InvalidUserData("User not found");
-        }
+    public UserToReturnDTO getByFullName(String fullName) {
+        UserEntity userEntity = userRepository.findUserEntityByFullName(fullName).orElseThrow(() -> new InvalidUserData("User with full name - [" + fullName + "] does not exists."));
+        return modelMapper.map(userEntity, UserToReturnDTO.class);
     }
 
     private UserEntity loginWithEmail(String email, String password) {
-        UserEntity userEntity = userRepository.findUserEntityByEmailAndPassword(email, password);
-        if (userEntity == null) throw new InvalidUserData("Invalid email or password");
-        return userEntity;
+        Optional<UserEntity> userEntity = userRepository.findUserEntityByEmail(email);
+        if (!userEntity.isPresent()) throw new InvalidUserData("Invalid email");
+        boolean passwordMatches = passwordEncoder.matches(password, userEntity.get().getPassword());
+        if (!passwordMatches) {
+            throw new InvalidUserData("Invalid password");
+        }
+        return userEntity.get();
     }
 
     private UserEntity loginWithUsername(String username, String password) {
-        UserEntity userEntity = userRepository.findUserEntityByUsernameAndPassword(username, password);
-        if (userEntity == null) throw new InvalidUserData("Invalid username or password");
-        return userEntity;
+        Optional<UserEntity> userEntity = userRepository.findUserEntityByUsername(username);
+        if (!userEntity.isPresent()) throw new InvalidUserData("Invalid username");
+        boolean passwordMatches = passwordEncoder.matches(password, userEntity.get().getPassword());
+        if (!passwordMatches) {
+            throw new InvalidUserData("Invalid password");
+        }
+        return userEntity.get();
     }
 
-    public UserEntity deleteUser(RequestUserDTO userToDelete, HttpSession session, HttpServletRequest request) {
+    public UserToReturnDTO deleteUser(RequestUserDTO userToDelete, HttpSession session, HttpServletRequest request) {
 
         if (userToDelete.getId() == null) throw new InvalidUserData("Please provide user ID ");
-
         Optional<UserEntity> userEntity = userRepository.findById(userToDelete.getId());
         if (userEntity.isEmpty()) throw new InvalidUserData("No such user found");
-
         sessionManager.authorizeSession(userEntity.get().getId(), session, request);
         userRepository.deleteById(userToDelete.getId());
-
-        return userEntity.get();
+        return modelMapper.map(userEntity, UserToReturnDTO.class);
     }
 
     public static boolean patternMatches(String emailAddress) {

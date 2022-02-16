@@ -4,12 +4,14 @@ import com.example.instagramproject.model.entity.UserEntity;
 import lombok.*;
 
 import javax.validation.constraints.Email;
+import java.time.LocalDate;
 
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 @Builder
 public class RequestUserDTO {
 
@@ -27,18 +29,19 @@ public class RequestUserDTO {
 
     private String confirmPassword;
 
+    private String profilePicture;
+
+    private String phoneNumber;
+
+    private String gender;
+
+    private LocalDate birthDate;
+
+    protected String website;
+
+    protected String bio;
+
     public UserEntity toEntity() {
         return new UserEntity(this.username, this.email, this.password, this.fullName);
-    }
-
-    @Override
-    public String toString() {
-        return "UserToRegisterDTO{" +
-                "username='" + username + '\'' +
-                ", fullName='" + fullName + '\'' +
-                ", email='" + email + '\'' +
-                ", password='" + password + '\'' +
-                ", confirmPassword='" + confirmPassword + '\'' +
-                '}';
     }
 }

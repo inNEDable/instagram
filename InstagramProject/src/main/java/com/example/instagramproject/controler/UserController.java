@@ -20,78 +20,59 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private ModelMapper modelMapper;
-
     @PutMapping("/logout")
-    public ResponseEntity<UserToReturnDTO> logOut (@RequestBody RequestUserDTO userToLogout, HttpSession session, HttpServletRequest request ){
+    public ResponseEntity<UserToReturnDTO> logOut(@RequestBody RequestUserDTO userToLogout, HttpSession session, HttpServletRequest request) {
         System.out.println("LOGOUT ATTEMPT");
-        userService.logOut(userToLogout, session, request);
-        UserToReturnDTO userToReturnDTO = modelMapper.map(userToLogout, UserToReturnDTO.class);
+        UserToReturnDTO userToReturnDTO = userService.logOut(userToLogout, session, request);
         System.out.println(userToReturnDTO);
         return new ResponseEntity<>(userToReturnDTO, HttpStatus.OK);
     }
 
     @PutMapping("/change-password")
     public ResponseEntity<UserToReturnDTO> changePassword(@RequestBody RequestUserDTO requestUserDTO, HttpSession session, HttpServletRequest request) {
-        userService.changePassword(requestUserDTO, session, request);
-        UserToReturnDTO userToReturnDTO = modelMapper.map(requestUserDTO, UserToReturnDTO.class);
+        UserToReturnDTO userToReturnDTO = userService.changePassword(requestUserDTO, session, request);
         return new ResponseEntity<>(userToReturnDTO, HttpStatus.OK);
     }
 
     @PutMapping("/edit-profile-info")
     public ResponseEntity<UserToReturnDTO> edit(@RequestBody RequestUserDTO requestUserDTO, HttpSession session, HttpServletRequest request) {
-        userService.edit(requestUserDTO, session, request);
-        UserToReturnDTO userToReturnDTO = modelMapper.map(requestUserDTO, UserToReturnDTO.class);
+        UserToReturnDTO userToReturnDTO = userService.edit(requestUserDTO, session, request);
         return new ResponseEntity<>(userToReturnDTO, HttpStatus.OK);
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<UserToReturnDTO> deleteUser (@RequestBody RequestUserDTO userToDelete, HttpSession session, HttpServletRequest request){
-        UserEntity userEntity = userService.deleteUser(userToDelete, session, request);
-
-        UserToReturnDTO userToReturnDTO = modelMapper.map(userEntity, UserToReturnDTO.class);
+    public ResponseEntity<UserToReturnDTO> deleteUser(@RequestBody RequestUserDTO userToDelete, HttpSession session, HttpServletRequest request) {
+        UserToReturnDTO userToReturnDTO = userService.deleteUser(userToDelete, session, request);
         return new ResponseEntity<>(userToReturnDTO, HttpStatus.OK);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserToReturnDTO> login (@RequestBody RequestUserDTO userToLogin, HttpSession session, HttpServletRequest request){
-        String username = userToLogin.getUsername();
-        String email = userToLogin.getEmail();
-        String password = userToLogin.getPassword();
-
-        UserEntity userEntity = userService.login(username, email, password, session, request);
-        UserToReturnDTO userToReturnDTO = modelMapper.map(userEntity, UserToReturnDTO.class);
-
+    public ResponseEntity<UserToReturnDTO> login(@RequestBody RequestUserDTO userToLogin, HttpSession session, HttpServletRequest request) {
+        UserToReturnDTO userToReturnDTO = userService.login(userToLogin, session, request);
         return new ResponseEntity<>(userToReturnDTO, HttpStatus.OK);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UserToReturnDTO> registerUser (@RequestBody RequestUserDTO requestUserDTO){
-        UserToReturnDTO userToReturnDTO =  userService.registerUser(requestUserDTO);
+    public ResponseEntity<UserToReturnDTO> registerUser(@RequestBody RequestUserDTO requestUserDTO) {
+        UserToReturnDTO userToReturnDTO = userService.registerUser(requestUserDTO);
         return new ResponseEntity<>(userToReturnDTO, HttpStatus.CREATED);
     }
 
     @GetMapping("/find-by-id/{id}")
     public ResponseEntity<UserToReturnDTO> getById(@PathVariable(name = "id") long id) {
-        UserEntity userEntity = userService.getById(id);
-        UserToReturnDTO userToReturnDTO = modelMapper.map(userEntity, UserToReturnDTO.class);
+        UserToReturnDTO userToReturnDTO = userService.getById(id);
         return new ResponseEntity<>(userToReturnDTO, HttpStatus.OK);
     }
 
     @GetMapping("/find-by-username/{username}")
     public ResponseEntity<UserToReturnDTO> getByUsername(@PathVariable(name = "username") String username) {
-        UserEntity userEntity = userService.getByUsername(username);
-        UserToReturnDTO userToReturnDTO = modelMapper.map(userEntity, UserToReturnDTO.class);
+        UserToReturnDTO userToReturnDTO = userService.getByUsername(username);
         return ResponseEntity.ok(userToReturnDTO);
     }
 
     @GetMapping("/find-by-fullName/{fullName}")
     public ResponseEntity<UserToReturnDTO> getByFullName(@PathVariable(name = "fullName") String fullName) {
-        UserEntity userEntity = userService.getByFullName(fullName);
-        UserToReturnDTO userToReturnDTO = modelMapper.map(userEntity, UserToReturnDTO.class);
+        UserToReturnDTO userToReturnDTO = userService.getByFullName(fullName);
         return ResponseEntity.ok(userToReturnDTO);
     }
-
-
 }

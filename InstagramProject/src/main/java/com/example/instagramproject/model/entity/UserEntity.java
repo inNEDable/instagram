@@ -51,7 +51,6 @@ public class UserEntity {
     @Column
     protected String bio;
 
-
     @Column(name = "is_verified")
     protected boolean isVerified;
 
