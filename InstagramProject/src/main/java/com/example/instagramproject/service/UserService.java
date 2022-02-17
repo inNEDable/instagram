@@ -71,19 +71,25 @@ public class UserService {
         userEntity.setPassword(hashedPassword);
         userRepository.save(userEntity);
 
-        return modelMapper.map(requestUserDTO, UserToReturnDTO.class);
+        return modelMapper.map(userEntity, UserToReturnDTO.class);
     }
 
     public UserToReturnDTO edit(RequestUserDTO requestUserDTO, HttpSession session, HttpServletRequest request) {
         sessionManager.authorizeSession(requestUserDTO.getId(), session, request);
 
         UserEntity user = userRepository.findById(requestUserDTO.getId()).orElseThrow(() -> new InvalidUserData("Please provide user ID"));
-        Validator.validateUsernameExists(userRepository, requestUserDTO.getUsername(), "This username isn't available. Please try another");
-        Validator.validateEmailExists(userRepository, requestUserDTO.getEmail(), "Another account is using " + requestUserDTO.getEmail());
+        if (!user.getUsername().equals(requestUserDTO.getUsername())) {
+            Validator.validateUsernameExists(userRepository, requestUserDTO.getUsername(), "This username isn't available. Please try another");
+        }
+        if (!user.getEmail().equals(requestUserDTO.getEmail())) {
+            Validator.validateEmailExists(userRepository, requestUserDTO.getEmail());
+        }
         if (!Validator.validateEmailPatternMatches(requestUserDTO.getEmail()))
             throw new InvalidUserData("Enter a valid email address.");
-        if (!Validator.validateWebSitePatternMatches(requestUserDTO.getWebsite()))
-            throw new InvalidUserData("Enter a valid website.");
+        if (requestUserDTO.getWebsite() != null) {
+            if (!Validator.validateWebSitePatternMatches(requestUserDTO.getWebsite()))
+                throw new InvalidUserData("Enter a valid website.");
+        }
 
         UserEntity updatedUserEntity = modelMapper.map(requestUserDTO, UserEntity.class);
 
@@ -103,8 +109,7 @@ public class UserService {
         Validator.validateUsernameExists(userRepository, username, "This username isn't available. Please try another.");
         if (!password.equals(confirmPassword)) throw new InvalidUserData("Passwords don't match");
         if (!Validator.validateEmailPatternMatches(email)) throw new InvalidUserData("Invalid email");
-        if (!Validator.validateWebSitePatternMatches(requestUserDTO.getWebsite())) throw new InvalidUserData("Enter a valid website.");
-        Validator.validateEmailExists(userRepository, requestUserDTO.getEmail(), "Another account is using " + requestUserDTO.getEmail());
+        Validator.validateEmailExists(userRepository, requestUserDTO.getEmail());
 
         UserEntity userEntity = modelMapper.map(requestUserDTO, UserEntity.class);
         String hashedPassword = passwordEncoder.encode(requestUserDTO.getPassword());
