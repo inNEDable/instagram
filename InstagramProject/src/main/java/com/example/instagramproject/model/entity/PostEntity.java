@@ -24,8 +24,9 @@ public class PostEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    @Column(name = "user_id")
-//    private Long userId;
+    @ManyToOne
+    @JoinColumn(name="post_id", nullable=false)
+    private UserEntity user;
 
     @Column(name = "date_time")
     @DateTimeFormat(pattern = "yyyy/MM/dd hh:mm:ss")

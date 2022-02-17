@@ -6,6 +6,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -55,7 +56,8 @@ public class UserEntity {
     @Column(name = "is_verified")
     protected boolean isVerified;
 
-
+    @OneToMany(mappedBy= "user")
+    private Set<PostEntity> posts;
 
     public UserEntity(String username, String email, String password, String fullName) {
         this.username = username;

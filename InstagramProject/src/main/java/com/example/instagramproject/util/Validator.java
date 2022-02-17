@@ -16,9 +16,9 @@ public class Validator {
         }
     }
 
-    public static void validateEmailExists(UserRepository userRepository, String email, String s) {
+    public static void validateEmailExists(UserRepository userRepository, String email) {
         if (userRepository.findUserEntityByEmail(email).isPresent()) {
-            throw new InvalidUserData(s);
+            throw new InvalidUserData("Another account is using " + email);
         }
     }
 
