@@ -127,7 +127,7 @@ public class UserService {
     }
 
     public UserToReturnDTO getById(long id) {
-        UserEntity userEntity = userRepository.findById(id).orElseThrow(() -> new InvalidUserData("User with " + id + " does not exists."));
+        UserEntity userEntity = userRepository.findById(id).orElseThrow(() -> new InvalidUserData("User with id - " + id + " does not exists."));
         return modelMapper.map(userEntity, UserToReturnDTO.class);
     }
 
@@ -167,5 +167,13 @@ public class UserService {
         return modelMapper.map(userEntity, UserToReturnDTO.class);
     }
 
-
+//    public UserToReturnDTO forgottenPassword(RequestUserDTO requestUserDTO, HttpSession session, HttpServletRequest request) {
+//        sessionManager.authorizeSession(requestUserDTO.getId(), session, request);
+//
+//        Validator.validateEmailPatternMatches(requestUserDTO.getEmail());
+//        UserEntity userEntity = userRepository.findUserEntityByEmail(requestUserDTO.getEmail()).orElseThrow(() -> new InvalidUserData("Enter a valid email address."));
+//
+//
+//        return null;
+//    }
 }

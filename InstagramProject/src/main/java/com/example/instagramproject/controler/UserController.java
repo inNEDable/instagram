@@ -65,12 +65,12 @@ public class UserController {
     @GetMapping("/find-by-username/{username}")
     public ResponseEntity<UserToReturnDTO> getByUsername(@PathVariable(name = "username") String username) {
         UserToReturnDTO userToReturnDTO = userService.getByUsername(username);
-        return ResponseEntity.ok(userToReturnDTO);
+        return new ResponseEntity<>(userToReturnDTO, HttpStatus.OK);
     }
 
-    @GetMapping("/find-by-fullName/{fullName}")
+    @GetMapping("/find-by-full-name/{fullName}")
     public ResponseEntity<UserToReturnDTO> getByFullName(@PathVariable(name = "fullName") String fullName) {
         UserToReturnDTO userToReturnDTO = userService.getByFullName(fullName);
-        return ResponseEntity.ok(userToReturnDTO);
+        return new ResponseEntity<>(userToReturnDTO, HttpStatus.OK);
     }
 }
