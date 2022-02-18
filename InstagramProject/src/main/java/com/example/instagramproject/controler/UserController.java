@@ -2,9 +2,7 @@ package com.example.instagramproject.controler;
 
 import com.example.instagramproject.model.DTO.RequestUserDTO;
 import com.example.instagramproject.model.DTO.UserToReturnDTO;
-import com.example.instagramproject.model.entity.UserEntity;
 import com.example.instagramproject.service.UserService;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

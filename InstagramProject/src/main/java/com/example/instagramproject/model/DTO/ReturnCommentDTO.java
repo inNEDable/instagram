@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReturnCommentPostDTO {
+public class ReturnCommentDTO {
 
     private Long id;
 

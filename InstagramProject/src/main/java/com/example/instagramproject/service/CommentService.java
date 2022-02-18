@@ -2,12 +2,15 @@ package com.example.instagramproject.service;
 
 import com.example.instagramproject.exceptions.InvalidData;
 import com.example.instagramproject.model.DTO.CreateCommentPostDTO;
-import com.example.instagramproject.model.DTO.ReturnCommentPostDTO;
+import com.example.instagramproject.model.DTO.CreateSubCommentDTO;
+import com.example.instagramproject.model.DTO.ReturnCommentDTO;
 import com.example.instagramproject.model.entity.CommentEntity;
 import com.example.instagramproject.model.entity.PostEntity;
+import com.example.instagramproject.model.entity.SubCommentEntity;
 import com.example.instagramproject.model.entity.UserEntity;
 import com.example.instagramproject.model.repository.CommentRepository;
 import com.example.instagramproject.model.repository.PostRepository;
+import com.example.instagramproject.model.repository.SubCommentRepository;
 import com.example.instagramproject.model.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +26,9 @@ public class CommentService {
     private CommentRepository commentRepository;
 
     @Autowired
+    private SubCommentRepository subCommentRepository;
+
+    @Autowired
     private SessionManager sessionManager;
 
     @Autowired
@@ -34,7 +40,7 @@ public class CommentService {
     @Autowired
     private PostRepository postRepository;
 
-    public ReturnCommentPostDTO createCommentPost(CreateCommentPostDTO createCommentPostDTO, HttpServletRequest request) {
+    public ReturnCommentDTO createCommentPost(CreateCommentPostDTO createCommentPostDTO, HttpServletRequest request) {
         if (createCommentPostDTO.getText().isBlank()
                 || createCommentPostDTO.getUserId() == null) throw new InvalidData("Invalid data");
 
@@ -52,16 +58,16 @@ public class CommentService {
         comment.setPost(post);
         commentRepository.save(comment);
 
-        return modelMapper.map(comment, ReturnCommentPostDTO.class);
+        return modelMapper.map(comment, ReturnCommentDTO.class);
     }
 
-    public ReturnCommentPostDTO deleteComment(CreateCommentPostDTO commentToDelete, HttpServletRequest request) {
+    public ReturnCommentDTO deleteComment(CreateCommentPostDTO commentToDelete, HttpServletRequest request) {
         if (commentToDelete.getId() == null) throw new InvalidData("Invalid date");
 
         sessionManager.authorizeSession(commentToDelete.getUserId(), request.getSession(), request);
         CommentEntity comment = commentRepository.findById(commentToDelete.getId()).orElseThrow(() -> new InvalidData("Comment ID doesn't exist"));
         commentRepository.deleteById(commentToDelete.getId());
 
-        return modelMapper.map(comment, ReturnCommentPostDTO.class);
+        return modelMapper.map(comment, ReturnCommentDTO.class);
     }
 }
