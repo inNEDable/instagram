@@ -38,6 +38,9 @@ public class PostEntity {
     @OneToMany(mappedBy= "post")
     private Set<PostMediaEntity> postMediaEntities;
 
+    @OneToMany(mappedBy = "post")
+    private Set<CommentEntity> commentEntities;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

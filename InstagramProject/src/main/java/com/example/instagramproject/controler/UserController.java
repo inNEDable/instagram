@@ -20,6 +20,7 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+
     @PutMapping("/logout")
     public ResponseEntity<UserToReturnDTO> logOut(@RequestBody RequestUserDTO userToLogout, HttpSession session, HttpServletRequest request) {
         UserToReturnDTO userToReturnDTO = userService.logOut(userToLogout, session, request);

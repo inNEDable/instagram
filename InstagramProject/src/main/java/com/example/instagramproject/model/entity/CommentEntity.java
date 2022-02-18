@@ -1,14 +1,23 @@
 package com.example.instagramproject.model.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
-@Table(name = "comments")
+@Table(name = "post_comments")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class CommentEntity {
-    //id, data_time, user_id, text, like_count, media, post_id, parent_comment_id
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -17,22 +26,27 @@ public class CommentEntity {
     @DateTimeFormat(pattern = "yyyy/MM/dd hh:mm:ss")
     private LocalDateTime dateCreated;
 
-    @Column(name = "user_id")
-    private int userId;
+    @ManyToOne
+    @JoinColumn(name="user_id", nullable=false)
+    private UserEntity user;
 
     @Column
     private String text;
 
-    @Column(name = "like_count")
-    private Long likeCount;
+    @ManyToOne
+    @JoinColumn(name = "post_id", nullable=false)
+    private PostEntity post;
 
-    @Column
-    private String media;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CommentEntity that = (CommentEntity) o;
+        return Objects.equals(id, that.id);
+    }
 
-    @Column(name = "post_id")
-    private int postID;
-
-    @Column(name = "parent_comment_id")
-    private int parentCommentId;
-
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }
