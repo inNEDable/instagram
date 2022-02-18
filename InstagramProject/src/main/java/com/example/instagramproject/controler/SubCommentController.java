@@ -1,7 +1,6 @@
 package com.example.instagramproject.controler;
 
-import com.example.instagramproject.model.DTO.CreateCommentPostDTO;
-import com.example.instagramproject.model.DTO.CreateSubCommentDTO;
+import com.example.instagramproject.model.DTO.RequestSubCommentDTO;
 import com.example.instagramproject.model.DTO.ReturnCommentDTO;
 import com.example.instagramproject.service.SubCommentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,13 +18,13 @@ public class SubCommentController {
     private SubCommentService subCommentService;
 
     @PostMapping("/add")
-    public ResponseEntity<ReturnCommentDTO> createSubComment(@RequestBody CreateSubCommentDTO createSubCommentDTO, HttpServletRequest request) {
+    public ResponseEntity<ReturnCommentDTO> createSubComment(@RequestBody RequestSubCommentDTO createSubCommentDTO, HttpServletRequest request) {
         ReturnCommentDTO returnCommentDTO = subCommentService.crateSubComment(createSubCommentDTO, request);
         return new ResponseEntity<>(returnCommentDTO, HttpStatus.CREATED);
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<ReturnCommentDTO> deleteSubComment(@RequestBody CreateSubCommentDTO createSubCommentDTO, HttpServletRequest request) {
+    public ResponseEntity<ReturnCommentDTO> deleteSubComment(@RequestBody RequestSubCommentDTO createSubCommentDTO, HttpServletRequest request) {
         ReturnCommentDTO returnCommentDTO = subCommentService.deleteSubComment(createSubCommentDTO, request);
         return new ResponseEntity<>(returnCommentDTO, HttpStatus.OK);
     }

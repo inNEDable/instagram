@@ -6,6 +6,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -13,7 +14,6 @@ import java.util.Set;
 @Getter
 @Setter
 @NoArgsConstructor
-
 public class UserEntity {
 
     // id, username, full_name, email, pass, profile_pic, phone_number, gender, birth_date, website, bio, is_verified
@@ -62,11 +62,27 @@ public class UserEntity {
     @OneToMany(mappedBy= "user", cascade = CascadeType.ALL)
     private Set<CommentEntity> comments;
 
+    @OneToMany(mappedBy= "user", cascade = CascadeType.ALL)
+    private Set<LikeCommentEntity> likes;
+
     public UserEntity(String username, String email, String password, String fullName) {
         this.username = username;
         this.email = email;
         this.password = password;
         this.fullName = fullName;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UserEntity that = (UserEntity) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 
     @Override

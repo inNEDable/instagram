@@ -9,16 +9,14 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateSubCommentDTO {
+public class ReturnLikeDTO {
 
     private Long id;
 
-    // User creating the comment
     private Long userId;
 
-    // Text of the comment
-    private String text;
+    private Long postId;
 
-    // Comment created in comment
-    private Long parentCommentId;
+    private Long commentId;
+
 }

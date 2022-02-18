@@ -1,7 +1,7 @@
 package com.example.instagramproject.service;
 
 import com.example.instagramproject.exceptions.InvalidData;
-import com.example.instagramproject.model.DTO.CreateSubCommentDTO;
+import com.example.instagramproject.model.DTO.RequestSubCommentDTO;
 import com.example.instagramproject.model.DTO.ReturnCommentDTO;
 import com.example.instagramproject.model.entity.CommentEntity;
 import com.example.instagramproject.model.entity.SubCommentEntity;
@@ -34,7 +34,7 @@ public class SubCommentService {
     @Autowired
     private UserRepository userRepository;
 
-    public ReturnCommentDTO crateSubComment(CreateSubCommentDTO createSubCommentDTO, HttpServletRequest request) {
+    public ReturnCommentDTO crateSubComment(RequestSubCommentDTO createSubCommentDTO, HttpServletRequest request) {
         if (createSubCommentDTO.getText().isBlank()
                 || createSubCommentDTO.getUserId() == null) throw new InvalidData("Invalid data");
 
@@ -54,7 +54,7 @@ public class SubCommentService {
         return modelMapper.map(subComment, ReturnCommentDTO.class);
     }
 
-    public ReturnCommentDTO deleteSubComment(CreateSubCommentDTO createSubCommentDTO, HttpServletRequest request) {
+    public ReturnCommentDTO deleteSubComment(RequestSubCommentDTO createSubCommentDTO, HttpServletRequest request) {
         if (createSubCommentDTO.getId() == null) throw new InvalidData("Invalid date");
 
         sessionManager.authorizeSession(createSubCommentDTO.getUserId(), request.getSession(), request);
