@@ -17,12 +17,8 @@ public class CreatePostDTO {
     // User creating the post
     private Long userId;
 
-    // Time of post creation
-    private LocalDateTime dateTime;
-
     // Text of the post
     private String text;
 
-    // URL of the post MEDIA
-    private Set<String> media;
+
 }

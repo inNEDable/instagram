@@ -1,6 +1,6 @@
 package com.example.instagramproject.util;
 
-import com.example.instagramproject.exceptions.InvalidUserData;
+import com.example.instagramproject.exceptions.InvalidData;
 import com.example.instagramproject.model.repository.UserRepository;
 
 import java.util.regex.Pattern;
@@ -12,13 +12,13 @@ public class Validator {
 
     public static void validateUsernameExists(UserRepository userRepository, String username, String s) {
         if (userRepository.findUserEntityByUsername(username).isPresent()) {
-            throw new InvalidUserData(s);
+            throw new InvalidData(s);
         }
     }
 
     public static void validateEmailExists(UserRepository userRepository, String email) {
         if (userRepository.findUserEntityByEmail(email).isPresent()) {
-            throw new InvalidUserData("Another account is using " + email);
+            throw new InvalidData("Another account is using " + email);
         }
     }
 

@@ -1,4 +1,4 @@
-package com.clinic.pet.configuration;
+package com.example.instagramproject.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +24,7 @@ public class SpringFoxConfig {
                 .select()
                 .apis(RequestHandlerSelectors.any())
                 .paths(PathSelectors.regex("/api.*"))
+//                .paths(PathSelectors.any())
                 .build()
                 .apiInfo(apiDetails());
     }
@@ -34,7 +35,7 @@ public class SpringFoxConfig {
                 "",
                 "1.0",
                 "Free to use",
-                new Contact("Racho Ivanov", "", "racho_ivanov@abv.bg"),
+                new Contact("Nedelcho Dimov & Kolyo Georgiev", "", "nedelcho.dimov92@gmail.com"),
                 "API Licence",
                 "",
                 new ArrayList<>()

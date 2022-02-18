@@ -56,7 +56,7 @@ public class UserEntity {
     @Column(name = "is_verified")
     protected boolean isVerified;
 
-    @OneToMany(mappedBy= "user")
+    @OneToMany(mappedBy= "user", cascade = CascadeType.ALL)
     private Set<PostEntity> posts;
 
     public UserEntity(String username, String email, String password, String fullName) {

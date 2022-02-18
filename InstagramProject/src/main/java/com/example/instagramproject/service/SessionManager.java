@@ -29,8 +29,10 @@ public class SessionManager {
         if (session.getAttribute(LOGGED) == null || (Integer)session.getAttribute(LOGGED) != 1)
             throw new UnauthorizedAccess("User must be logged first!");
 
-        Long userIdFromSession = (Long) session.getAttribute(USER_ID);
-        if (!providedId.equals(userIdFromSession)) throw new UnauthorizedAccess("User trying to manipulate foreign profile");
+        if (providedId != null){
+            Long userIdFromSession = (Long) session.getAttribute(USER_ID);
+            if (!providedId.equals(userIdFromSession)) throw new UnauthorizedAccess("User trying to manipulate foreign profile");
+        }
 
     }
 

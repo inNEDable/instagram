@@ -8,6 +8,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -25,18 +26,11 @@ public class PostEntity {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name="post_id", nullable=false)
+    @JoinColumn(name="user_id", nullable=false)
     private UserEntity user;
 
     @Column(name = "date_time")
-    @DateTimeFormat(pattern = "yyyy/MM/dd hh:mm:ss")
     private LocalDateTime dateTime;
-
-    @Column(name = "like_count")
-    private Long likeCount;
-
-    @Column(name = "comment_count")
-    private Long commentCount;
 
     @Column
     private String text;
@@ -44,4 +38,16 @@ public class PostEntity {
     @OneToMany(mappedBy= "post")
     private Set<PostMediaEntity> postMediaEntities;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PostEntity)) return false;
+        PostEntity entity = (PostEntity) o;
+        return Objects.equals(id, entity.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

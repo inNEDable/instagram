@@ -27,7 +27,6 @@ public class PostMediaEntity {
 //    @Column(name = "post_id")
 //    private Long postId;
 
-
     @ManyToOne()
     @JoinColumn(name="post_id", nullable=false)
     private PostEntity post;
