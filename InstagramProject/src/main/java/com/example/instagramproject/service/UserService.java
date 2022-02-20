@@ -30,16 +30,18 @@ public class UserService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public ReturnUserDTO logOut(RequestUserDTO userToLogOut, HttpSession session, HttpServletRequest request) {
+    public ReturnUserDTO logOut(RequestUserDTO userToLogOut, HttpServletRequest request) {
         if (userToLogOut.getId() == null) throw new InvalidData("Please provide user ID ");
+        if (!userRepository.existsById(userToLogOut.getId())) throw new InvalidData("Such user doesn't exist");
 
-        sessionManager.authorizeSession(userToLogOut.getId(), session, request);
-        sessionManager.logOut(session);
+        sessionManager.authorizeSession(userToLogOut.getId(), request.getSession(), request);
+        sessionManager.logOut(request.getSession());
 
         return modelMapper.map(userToLogOut, ReturnUserDTO.class);
     }
 
-    public ReturnUserDTO login(RequestUserDTO userToLogin, HttpSession session, HttpServletRequest request) {
+    public ReturnUserDTO login(RequestUserDTO userToLogin, HttpServletRequest request) {
+        if (sessionManager.isLogged(request.getSession())) throw new InvalidData("Already logged!");
         String username = userToLogin.getUsername();
         String email = userToLogin.getEmail();
         String password = userToLogin.getPassword();
@@ -49,14 +51,15 @@ public class UserService {
         if (username == null) userEntity = loginWithEmail(email, password);
         else userEntity = loginWithUsername(username, password);
 
-        sessionManager.login(userEntity.getId(), session, request);
+        sessionManager.login(userEntity.getId(), request.getSession(), request);
 
         return modelMapper.map(userEntity, ReturnUserDTO.class);
     }
 
-    public ReturnUserDTO changePassword(RequestUserDTO requestUserDTO, HttpSession session, HttpServletRequest request) {
-        sessionManager.authorizeSession(requestUserDTO.getId(), session, request);
-        UserEntity userEntity = userRepository.findById((long) session.getAttribute(SessionManager.USER_ID)).orElseThrow(() -> new InvalidData("Please provide user ID"));
+    public ReturnUserDTO changePassword(RequestUserDTO requestUserDTO, HttpServletRequest request) {
+        sessionManager.authorizeSession(requestUserDTO.getId(), request.getSession(), request);
+        UserEntity userEntity = userRepository.findById((long) request.getSession().getAttribute(SessionManager.USER_ID))
+                .orElseThrow(() -> new InvalidData("Please provide user ID"));
 
         if (!passwordEncoder.matches(requestUserDTO.getPassword(), userEntity.getPassword())) {
             throw new InvalidData("Please provide valid password");
@@ -72,8 +75,8 @@ public class UserService {
         return modelMapper.map(userEntity, ReturnUserDTO.class);
     }
 
-    public ReturnUserDTO edit(RequestUserDTO requestUserDTO, HttpSession session, HttpServletRequest request) {
-        sessionManager.authorizeSession(requestUserDTO.getId(), session, request);
+    public ReturnUserDTO edit(RequestUserDTO requestUserDTO, HttpServletRequest request) {
+        sessionManager.authorizeSession(requestUserDTO.getId(), request.getSession(), request);
 
         UserEntity user = userRepository.findById(requestUserDTO.getId()).orElseThrow(() -> new InvalidData("Please provide user ID"));
         if (!user.getUsername().equals(requestUserDTO.getUsername())) {
@@ -97,7 +100,8 @@ public class UserService {
         return modelMapper.map(updatedUserEntity, ReturnUserDTO.class);
     }
 
-    public ReturnUserDTO registerUser(RequestUserDTO requestUserDTO) {
+    public ReturnUserDTO registerUser(RequestUserDTO requestUserDTO, HttpServletRequest request) {
+        if (sessionManager.isLogged(request.getSession())) throw new InvalidData("Cant Register while logged");
         String username = requestUserDTO.getUsername();
         String email = requestUserDTO.getEmail();
         String password = requestUserDTO.getPassword();
@@ -155,13 +159,16 @@ public class UserService {
         return userEntity;
     }
 
-    public ReturnUserDTO deleteUser(RequestUserDTO userToDelete, HttpSession session, HttpServletRequest request) {
+    public ReturnUserDTO deleteUser(RequestUserDTO userToDelete, HttpServletRequest request) {
 
         if (userToDelete.getId() == null) throw new InvalidData("Please provide user ID ");
         UserEntity userEntity = userRepository.findById(userToDelete.getId()).orElseThrow(() -> new InvalidData("No such user found"));
-        sessionManager.authorizeSession(userEntity.getId(), session, request);
-        userRepository.deleteById(userToDelete.getId());
 
+        sessionManager.authorizeSession(userEntity.getId(), request.getSession(), request);
+        sessionManager.logOut(request.getSession());
+        request.getSession().invalidate();
+
+        userRepository.deleteById(userToDelete.getId());
         return modelMapper.map(userEntity, ReturnUserDTO.class);
     }
 

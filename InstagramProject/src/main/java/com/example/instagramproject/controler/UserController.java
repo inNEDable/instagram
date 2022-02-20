@@ -19,38 +19,38 @@ public class UserController {
     private UserService userService;
 
     @PutMapping("/logout")
-    public ResponseEntity<ReturnUserDTO> logOut(@RequestBody RequestUserDTO userToLogout, HttpSession session, HttpServletRequest request) {
-        ReturnUserDTO returnUserDTO = userService.logOut(userToLogout, session, request);
+    public ResponseEntity<ReturnUserDTO> logOut(@RequestBody RequestUserDTO userToLogout, HttpServletRequest request) {
+        ReturnUserDTO returnUserDTO = userService.logOut(userToLogout, request);
         return new ResponseEntity<>(returnUserDTO, HttpStatus.OK);
     }
 
     @PutMapping("/change-password")
-    public ResponseEntity<ReturnUserDTO> changePassword(@RequestBody RequestUserDTO requestUserDTO, HttpSession session, HttpServletRequest request) {
-        ReturnUserDTO returnUserDTO = userService.changePassword(requestUserDTO, session, request);
+    public ResponseEntity<ReturnUserDTO> changePassword(@RequestBody RequestUserDTO requestUserDTO, HttpServletRequest request) {
+        ReturnUserDTO returnUserDTO = userService.changePassword(requestUserDTO, request);
         return new ResponseEntity<>(returnUserDTO, HttpStatus.OK);
     }
 
     @PutMapping("/edit-profile-info")
-    public ResponseEntity<ReturnUserDTO> edit(@RequestBody RequestUserDTO requestUserDTO, HttpSession session, HttpServletRequest request) {
-        ReturnUserDTO returnUserDTO = userService.edit(requestUserDTO, session, request);
+    public ResponseEntity<ReturnUserDTO> edit(@RequestBody RequestUserDTO requestUserDTO, HttpServletRequest request) {
+        ReturnUserDTO returnUserDTO = userService.edit(requestUserDTO, request);
         return new ResponseEntity<>(returnUserDTO, HttpStatus.OK);
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<ReturnUserDTO> deleteUser(@RequestBody RequestUserDTO userToDelete, HttpSession session, HttpServletRequest request) {
-        ReturnUserDTO returnUserDTO = userService.deleteUser(userToDelete, session, request);
+    public ResponseEntity<ReturnUserDTO> deleteUser(@RequestBody RequestUserDTO userToDelete, HttpServletRequest request) {
+        ReturnUserDTO returnUserDTO = userService.deleteUser(userToDelete, request);
         return new ResponseEntity<>(returnUserDTO, HttpStatus.OK);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ReturnUserDTO> login(@RequestBody RequestUserDTO userToLogin, HttpSession session, HttpServletRequest request) {
-        ReturnUserDTO returnUserDTO = userService.login(userToLogin, session, request);
+    public ResponseEntity<ReturnUserDTO> login(@RequestBody RequestUserDTO userToLogin, HttpServletRequest request) {
+        ReturnUserDTO returnUserDTO = userService.login(userToLogin, request);
         return new ResponseEntity<>(returnUserDTO, HttpStatus.OK);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ReturnUserDTO> registerUser(@RequestBody RequestUserDTO requestUserDTO) {
-        ReturnUserDTO returnUserDTO = userService.registerUser(requestUserDTO);
+    public ResponseEntity<ReturnUserDTO> registerUser(@RequestBody RequestUserDTO requestUserDTO, HttpServletRequest request) {
+        ReturnUserDTO returnUserDTO = userService.registerUser(requestUserDTO, request);
         return new ResponseEntity<>(returnUserDTO, HttpStatus.CREATED);
     }
 

@@ -39,4 +39,10 @@ public class SessionManager {
     public void logOut(HttpSession session){
         session.setAttribute(LOGGED, 0);
     }
+
+    public boolean isLogged(HttpSession session) {
+       if (session.isNew() || (Integer)session.getAttribute(LOGGED) != 1 )
+           return false;
+       return true;
+    }
 }
