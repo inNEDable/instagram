@@ -32,10 +32,7 @@ public class TagService {
 
     public ReturnTagDTO addTagToPost(Long postId, String tagText, HttpServletRequest request) {
         if (postId == null || tagText.isBlank()) throw new InvalidData("Missing data in request!");
-        sessionManager.authorizeSession(null, request.getSession(), request);
-        PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new InvalidData("Post doesn't exist"));
-        if (postEntity.getUser().getId() != sessionManager.getUserID(request))
-            throw new UnauthorizedAccess("This post doesn't belong to the user!");
+        PostEntity postEntity = tagToPostValidation(postId, request);
 
         TagEntity tagEntity = tagRepository.findByText(tagText);
         if (tagEntity == null){
@@ -50,6 +47,19 @@ public class TagService {
 
     }
 
+    public void deleteTagFromPost(Long postId, Long tagId, HttpServletRequest request) {
+        if (postId == null || tagId == null) throw new InvalidData("Missing data in request!");
+        PostEntity postEntity = tagToPostValidation(postId, request);
+        TagEntity tagEntity = tagRepository.findById(tagId).orElseThrow(() -> new InvalidData("Such tag doesn't exist!"));
+
+        if (tagEntity.getPosts() == null || !tagEntity.getPosts().contains(postEntity))
+            throw new InvalidData("This post doesn't have the specified tag!");
+
+        tagEntity.getPosts().remove(postEntity);
+        tagRepository.save(tagEntity);
+
+    }
+
     private TagEntity generateNewTagAndAddToPost(PostEntity postEntity, String tagText) {
         TagEntity newTagEntity = new TagEntity();
         newTagEntity.setText(tagText);
@@ -61,4 +71,11 @@ public class TagService {
         return newTagEntity;
     }
 
+    private PostEntity tagToPostValidation(Long postId, HttpServletRequest request) {
+        sessionManager.authorizeSession(null, request.getSession(), request);
+        PostEntity postEntity =  postRepository.findById(postId).orElseThrow(() -> new InvalidData("Post doesn't exist"));
+        if (postEntity.getUser().getId() != sessionManager.getUserID(request))
+            throw new UnauthorizedAccess("This post doesn't belong to the user!");
+        return postEntity;
+    }
 }
