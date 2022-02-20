@@ -100,6 +100,19 @@ public class PostService {
         return fullPath.toString();
     }
 
+    public void deletePost(Long userId, Long postId, HttpServletRequest request) {
+        sessionManager.authorizeSession(userId, request.getSession(), request);
+        PostEntity postEntity = userManipulatingPostCheck(userId, postId);
+        postRepository.deleteById(postId);
+
+        String currentPostFolder = "post-" + postId;
+        File mediaOfDeletedPost = new File(
+                ALL_POSTS_FOLDER
+                + File.separator
+                + currentPostFolder);
+        deleteDirectory(mediaOfDeletedPost);
+    }
+
     @SneakyThrows
     public void getPostMedia(Long postId, String requestedFile, HttpServletRequest request, HttpServletResponse response) {
         if (postId == null || requestedFile == null) throw new InvalidData("Missing request parameters");
@@ -128,12 +141,6 @@ public class PostService {
 
         return modelMapper.map(postEntity, ReturnPostDTO.class);
 
-    }
-
-    public void deletePost(Long userId, Long postId, HttpServletRequest request) {
-        sessionManager.authorizeSession(userId, request.getSession(), request);
-        PostEntity postEntity = userManipulatingPostCheck(userId, postId);
-        postRepository.deleteById(postId);
     }
 
     public ReturnPostDTO getPostById(Long postId, HttpServletRequest request) {
@@ -173,5 +180,15 @@ public class PostService {
 
         if (postEntity.getUser().getId() != userId) throw new InvalidData("User is trying to manipulate foreign post");
         return postEntity;
+    }
+
+    private boolean deleteDirectory(File directoryToBeDeleted) {
+        File[] allContents = directoryToBeDeleted.listFiles();
+        if (allContents != null) {
+            for (File file : allContents) {
+                deleteDirectory(file);
+            }
+        }
+        return directoryToBeDeleted.delete();
     }
 }

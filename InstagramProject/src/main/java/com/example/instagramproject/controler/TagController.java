@@ -1,5 +1,4 @@
 package com.example.instagramproject.controler;
-
 import com.example.instagramproject.model.DTO.ReturnTagDTO;
 import com.example.instagramproject.model.entity.PostEntity;
 import com.example.instagramproject.service.TagService;
@@ -7,9 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 import java.util.Set;
 
 @RestController
