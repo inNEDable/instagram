@@ -45,4 +45,8 @@ public class SessionManager {
            return false;
        return true;
     }
+
+    public Long getUserID(HttpServletRequest request) {
+        return (Long) request.getSession().getAttribute(USER_ID);
+    }
 }

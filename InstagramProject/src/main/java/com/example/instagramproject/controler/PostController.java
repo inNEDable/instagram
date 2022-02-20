@@ -2,6 +2,7 @@ package com.example.instagramproject.controler;
 
 import com.example.instagramproject.model.DTO.RequestPostDTO;
 import com.example.instagramproject.model.DTO.ReturnPostDTO;
+import com.example.instagramproject.model.DTO.ReturnTagDTO;
 import com.example.instagramproject.model.entity.PostEntity;
 import com.example.instagramproject.service.PostService;
 import lombok.SneakyThrows;
@@ -82,6 +83,7 @@ public class PostController {
 
         return new ResponseEntity<>(posts, responseHeaders, HttpStatus.OK);
     }
+
 
 
     // ++++ GET SINGLE MEDIA MEADIA FROM POST
