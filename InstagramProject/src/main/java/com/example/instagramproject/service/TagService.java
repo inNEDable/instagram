@@ -2,17 +2,21 @@ package com.example.instagramproject.service;
 
 import com.example.instagramproject.exceptions.InvalidData;
 import com.example.instagramproject.exceptions.UnauthorizedAccess;
+import com.example.instagramproject.model.DTO.ReturnPostDTO;
 import com.example.instagramproject.model.DTO.ReturnTagDTO;
 import com.example.instagramproject.model.entity.PostEntity;
 import com.example.instagramproject.model.entity.TagEntity;
 import com.example.instagramproject.model.repository.PostRepository;
 import com.example.instagramproject.model.repository.TagRepository;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Service
 public class TagService {
@@ -69,6 +73,19 @@ public class TagService {
         tagRepository.save(newTagEntity);
 
         return newTagEntity;
+    }
+
+    public Set<PostEntity> getAllPostsByTag(String tagText, HttpServletRequest request) {
+        if (tagText == null) throw new InvalidData("Tag id not provided");
+        sessionManager.authorizeSession(null, request.getSession(), request);
+        TagEntity tagEntity = tagRepository.findByText(tagText);
+        if (tagEntity == null) throw  new InvalidData("Such tag doesn't exist");
+
+        Set<PostEntity> postEntities = tagEntity.getPosts();
+        if (postEntities.isEmpty()) throw new InvalidData("This tag has no posts");
+
+        return modelMapper.map(postEntities, new TypeToken<Set<ReturnPostDTO>>() {}.getType());
+
     }
 
     private PostEntity tagToPostValidation(Long postId, HttpServletRequest request) {

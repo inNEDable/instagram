@@ -41,7 +41,9 @@ public class SessionManager {
     }
 
     public boolean isLogged(HttpSession session) {
-       if (session.isNew() || (Integer)session.getAttribute(LOGGED) != 1 )
+       if (session.isNew()
+               || session.getAttribute(LOGGED) == null
+               || (Integer)session.getAttribute(LOGGED) != 1 )
            return false;
        return true;
     }
