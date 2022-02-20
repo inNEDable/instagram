@@ -36,4 +36,10 @@ public class TagController {
         Set<PostEntity> postEntities = tagService.getAllPostsByTag(tagText, request);
         return new ResponseEntity<>(postEntities, HttpStatus.OK);
     }
+
+    @GetMapping("/get-all-tags-from-post/{postId}")
+    ResponseEntity<Set<ReturnTagDTO>> getAllTagsFromPost (@PathVariable Long postId, HttpServletRequest request){
+        Set<ReturnTagDTO> returnTagDTOS = tagService.getAllTagsFromPost(postId, request);
+        return new ResponseEntity<>(returnTagDTOS, HttpStatus.OK);
+    }
 }

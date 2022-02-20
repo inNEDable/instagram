@@ -64,17 +64,6 @@ public class TagService {
 
     }
 
-    private TagEntity generateNewTagAndAddToPost(PostEntity postEntity, String tagText) {
-        TagEntity newTagEntity = new TagEntity();
-        newTagEntity.setText(tagText);
-        newTagEntity.setPosts(new HashSet<>());
-        newTagEntity.getPosts().add(postEntity);
-
-        tagRepository.save(newTagEntity);
-
-        return newTagEntity;
-    }
-
     public Set<PostEntity> getAllPostsByTag(String tagText, HttpServletRequest request) {
         if (tagText == null) throw new InvalidData("Tag id not provided");
         sessionManager.authorizeSession(null, request.getSession(), request);
@@ -88,11 +77,34 @@ public class TagService {
 
     }
 
+    public Set<ReturnTagDTO> getAllTagsFromPost(Long postId, HttpServletRequest request) {
+        if (postId == null) throw new InvalidData("Please provide post ID");
+        sessionManager.authorizeSession(null, request.getSession(), request);
+        PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new InvalidData("Post doesn't exist"));
+
+        Set<TagEntity> tagEntities = postEntity.getTags();
+        if (tagEntities.isEmpty()) throw new InvalidData("This post doesn't have any tags");
+
+        return modelMapper.map(tagEntities, new TypeToken<Set<ReturnTagDTO>>() {}.getType());
+
+    }
+
     private PostEntity tagToPostValidation(Long postId, HttpServletRequest request) {
         sessionManager.authorizeSession(null, request.getSession(), request);
         PostEntity postEntity =  postRepository.findById(postId).orElseThrow(() -> new InvalidData("Post doesn't exist"));
         if (postEntity.getUser().getId() != sessionManager.getUserID(request))
             throw new UnauthorizedAccess("This post doesn't belong to the user!");
         return postEntity;
+    }
+
+    private TagEntity generateNewTagAndAddToPost(PostEntity postEntity, String tagText) {
+        TagEntity newTagEntity = new TagEntity();
+        newTagEntity.setText(tagText);
+        newTagEntity.setPosts(new HashSet<>());
+        newTagEntity.getPosts().add(postEntity);
+
+        tagRepository.save(newTagEntity);
+
+        return newTagEntity;
     }
 }
