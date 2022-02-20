@@ -23,6 +23,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class PostEntity {
 
+    // id, user_id, date_time, like_count, comment_count, text
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,6 +41,9 @@ public class PostEntity {
 
     @OneToMany(mappedBy= "post")
     private Set<PostMediaEntity> postMediaEntities;
+
+    @OneToMany(mappedBy = "post")
+    private Set<CommentEntity> commentEntities;
 
     @ManyToMany(mappedBy = "posts")
     private Set<TagEntity> tags;

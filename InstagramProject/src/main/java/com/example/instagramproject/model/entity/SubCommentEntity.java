@@ -11,19 +11,20 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Set;
 
+
 @Entity
-@Table(name = "post_comments")
+@Table(name = "sub_comments")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CommentEntity {
+public class SubCommentEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "data_time")
+    @Column(name = "date_time")
     @DateTimeFormat(pattern = "yyyy/MM/dd hh:mm:ss")
     private LocalDateTime dateCreated;
 
@@ -35,16 +36,13 @@ public class CommentEntity {
     private String text;
 
     @ManyToOne
-    @JoinColumn(name = "post_id", nullable=false)
-    private PostEntity post;
-
-    @OneToMany(mappedBy = "comment")
-    private Set<SubCommentEntity> subComments;
+    @JoinColumn(name = "parent_comment_id", nullable=false)
+    private CommentEntity comment;
 
     @ManyToMany
     @JoinTable(
-            name = "users_like_post_comments",
-            joinColumns = @JoinColumn(name = "post_comment_id"),
+            name = "users_like_sub_comments",
+            joinColumns = @JoinColumn(name = "sub_comment_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id"))
     private Set<UserEntity> likers;
 
@@ -52,7 +50,7 @@ public class CommentEntity {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        CommentEntity that = (CommentEntity) o;
+        SubCommentEntity that = (SubCommentEntity) o;
         return Objects.equals(id, that.id);
     }
 
