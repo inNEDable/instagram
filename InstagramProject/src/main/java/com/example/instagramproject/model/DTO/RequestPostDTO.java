@@ -5,20 +5,19 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-import java.util.Set;
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreatePostDTO {
+public class RequestPostDTO {
 
     // User creating the post
     private Long userId;
 
+    // Post id
+    private Long postId;
+
     // Text of the post
     private String text;
-
 
 }

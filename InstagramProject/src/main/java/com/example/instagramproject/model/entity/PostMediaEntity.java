@@ -1,5 +1,8 @@
 package com.example.instagramproject.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,7 +18,6 @@ import javax.persistence.*;
 @AllArgsConstructor
 public class PostMediaEntity {
 
-    // id, url, post_id
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,10 +26,14 @@ public class PostMediaEntity {
     @Column
     private String url;
 
-//    @Column(name = "post_id")
-//    private Long postId;
 
     @ManyToOne()
     @JoinColumn(name="post_id", nullable=false)
     private PostEntity post;
+
+
+    @JsonBackReference
+    public PostEntity getPost() {
+        return post;
+    }
 }

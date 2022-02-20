@@ -2,7 +2,7 @@ package com.example.instagramproject.service;
 
 
 import com.example.instagramproject.exceptions.InvalidData;
-import com.example.instagramproject.model.DTO.CreatePostDTO;
+import com.example.instagramproject.model.DTO.RequestPostDTO;
 import com.example.instagramproject.model.DTO.ReturnPostDTO;
 import com.example.instagramproject.model.entity.PostEntity;
 import com.example.instagramproject.model.entity.PostMediaEntity;
@@ -13,15 +13,21 @@ import com.example.instagramproject.model.repository.UserRepository;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FilenameUtils;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 
 @Service
 public class PostService {
@@ -44,45 +50,38 @@ public class PostService {
     private ModelMapper modelMapper;
 
 
-    public ReturnPostDTO createPost(CreatePostDTO createPostDTO, HttpServletRequest request) {
-        if (createPostDTO.getText().isBlank()
-                || createPostDTO.getUserId() == null) throw new InvalidData("Invalid data");
+    public ReturnPostDTO createPost(RequestPostDTO requestPostDTO, HttpServletRequest request) {
+        if (requestPostDTO.getText().isBlank()
+                || requestPostDTO.getUserId() == null) throw new InvalidData("Invalid data");
 
-        sessionManager.authorizeSession(createPostDTO.getUserId(), request.getSession(), request);
+        sessionManager.authorizeSession(requestPostDTO.getUserId(), request.getSession(), request);
 
-        UserEntity user = userRepository.findById(createPostDTO.getUserId())
+        UserEntity user = userRepository.findById(requestPostDTO.getUserId())
                 .orElseThrow(() -> new InvalidData("User ID doesn't exist"));
 
         //TODO: Да помисля тия двете отдолу, дали не могат да се направят с mapper
         PostEntity postEntity = new PostEntity();
         postEntity.setUser(user);
         postEntity.setDateTime(LocalDateTime.now());
-        postEntity.setText(createPostDTO.getText());
+        postEntity.setText(requestPostDTO.getText());
         postRepository.save(postEntity);
 
-        ReturnPostDTO returnPostDTO = new ReturnPostDTO();
-        returnPostDTO.setId(postEntity.getId());
-        returnPostDTO.setUser_id(user.getId());
-        returnPostDTO.setDateTime(postEntity.getDateTime());
-        returnPostDTO.setText(postEntity.getText());
-        return returnPostDTO;
+        return modelMapper.map(postEntity, ReturnPostDTO.class);
 
     }
 
     @SneakyThrows
     public String addMediaToPost(Long userId, Long postId, MultipartFile multipartFile, HttpServletRequest request) {
         if (userId == null || postId == null || multipartFile.isEmpty() ) throw new InvalidData("Data missing from request");
-        sessionManager.authorizeSession(userId, request.getSession(), request);
 
-        PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new InvalidData("Post doesn't exist"));
+        sessionManager.authorizeSession(userId, request.getSession(), request);
+        PostEntity postEntity = userManipulatingPostCheck(userId, postId);
 
         String fileName = System.nanoTime() + "."
                 + FilenameUtils.getExtension(multipartFile.getOriginalFilename());
 
         String currentPostFolder = "post-" + postId;
         new File(ALL_POSTS_FOLDER + File.separator + currentPostFolder).mkdir();
-
-
 
         Path fullPath = Path.of(ALL_POSTS_FOLDER //allPosts/post-?/3151613135161.jpg
                 + File.separator
@@ -98,17 +97,81 @@ public class PostService {
 
         postMediaRepository.save(postMediaEntity);
 
-
         return fullPath.toString();
     }
 
-    public MultipartFile getPostMedia(Long postId, String mediaUrl, HttpServletRequest request) {
-        if (postId == null || mediaUrl == null) throw new InvalidData("Missing request parameters");
+    @SneakyThrows
+    public void getPostMedia(Long postId, String requestedFile, HttpServletRequest request, HttpServletResponse response) {
+        if (postId == null || requestedFile == null) throw new InvalidData("Missing request parameters");
         sessionManager.authorizeSession(null, request.getSession(), request);
 
-        File mediaToGet = new File(mediaUrl);
+        String currentPostFolder = "post-" + postId;
+
+        File mediaToGet = new File(
+                    ALL_POSTS_FOLDER
+                            + File.separator
+                            + currentPostFolder
+                            + File.separator
+                            + requestedFile);
         if (!mediaToGet.exists()) throw new InvalidData("Picture not found on the server");
-        // TODO : да дорърша
-        return null;
+
+        Files.copy(mediaToGet.toPath(), response.getOutputStream());
+
+    }
+
+    public ReturnPostDTO editPostText(RequestPostDTO requestPostDTO, HttpServletRequest request) {
+        sessionManager.authorizeSession(requestPostDTO.getUserId(), request.getSession(), request);
+
+        PostEntity postEntity = userManipulatingPostCheck(requestPostDTO.getUserId(), requestPostDTO.getPostId());
+        postEntity.setText(requestPostDTO.getText());
+        postRepository.save(postEntity);
+
+        return modelMapper.map(postEntity, ReturnPostDTO.class);
+
+    }
+
+    public void deletePost(Long userId, Long postId, HttpServletRequest request) {
+        sessionManager.authorizeSession(userId, request.getSession(), request);
+        PostEntity postEntity = userManipulatingPostCheck(userId, postId);
+        postRepository.deleteById(postId);
+    }
+
+    public ReturnPostDTO getPostById(Long postId, HttpServletRequest request) {
+        if (postId == null) throw new InvalidData("Please provide Post ID!");
+        sessionManager.authorizeSession(null, request.getSession(), request);
+        PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new InvalidData("Post not found"));
+        return modelMapper.map(postEntity, ReturnPostDTO.class);
+    }
+
+    public List<ReturnPostDTO> getAllPostsFromUser(Long userId, HttpServletRequest request) {
+        userExistsCheck(userId);
+        sessionManager.authorizeSession(null, request.getSession(), request);
+
+        List<PostEntity> postEntities = postRepository.findAllByUserId(userId);
+        if (postEntities.isEmpty()) throw new InvalidData("User doesn't have any posts yet");
+
+        return modelMapper.map(postEntities, new TypeToken<List<ReturnPostDTO>>() {}.getType());
+    }
+
+    public List<ReturnPostDTO> getAllPostsByText(String t, HttpServletRequest request) {
+        sessionManager.authorizeSession(null, request.getSession(), request);
+
+        List<PostEntity> postEntities1 = postRepository.findAllByTextContaining(t);
+        if (postEntities1.isEmpty()) throw new InvalidData("No posts with provided text are found");
+
+        return modelMapper.map(postEntities1, new TypeToken<List<ReturnPostDTO>>() {}.getType());
+    }
+
+
+    private void userExistsCheck(Long userId) {
+        if (userId == null || !userRepository.existsById(userId)) throw new InvalidData("User doesn't exist");
+    }
+
+    private PostEntity userManipulatingPostCheck(Long userId, Long postId){
+        PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new InvalidData("Post doesn't exist"));
+        UserEntity user = userRepository.findById(userId).orElseThrow(() -> new InvalidData("User doesn't exist"));
+
+        if (postEntity.getUser().getId() != userId) throw new InvalidData("User is trying to manipulate foreign post");
+        return postEntity;
     }
 }

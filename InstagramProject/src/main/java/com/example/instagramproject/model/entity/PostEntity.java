@@ -1,5 +1,9 @@
 package com.example.instagramproject.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,7 +23,6 @@ import java.util.Set;
 @AllArgsConstructor
 public class PostEntity {
 
-    // id, user_id, date_time, like_count, comment_count, text
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,6 +40,22 @@ public class PostEntity {
 
     @OneToMany(mappedBy= "post")
     private Set<PostMediaEntity> postMediaEntities;
+
+    @ManyToMany(mappedBy = "posts")
+    private Set<TagEntity> tags;
+
+
+    /// Methods :
+
+    @JsonManagedReference
+    public Set<TagEntity> getTags() {
+        return tags;
+    }
+
+    @JsonManagedReference
+    public Set<PostMediaEntity> getPostMediaEntities() {
+        return postMediaEntities;
+    }
 
     @Override
     public boolean equals(Object o) {

@@ -2,7 +2,7 @@ package com.example.instagramproject.service;
 
 import com.example.instagramproject.exceptions.InvalidData;
 import com.example.instagramproject.model.DTO.RequestUserDTO;
-import com.example.instagramproject.model.DTO.UserToReturnDTO;
+import com.example.instagramproject.model.DTO.ReturnUserDTO;
 import com.example.instagramproject.model.entity.UserEntity;
 import com.example.instagramproject.model.repository.UserRepository;
 import com.example.instagramproject.util.Validator;
@@ -30,16 +30,16 @@ public class UserService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public UserToReturnDTO logOut(RequestUserDTO userToLogOut, HttpSession session, HttpServletRequest request) {
+    public ReturnUserDTO logOut(RequestUserDTO userToLogOut, HttpSession session, HttpServletRequest request) {
         if (userToLogOut.getId() == null) throw new InvalidData("Please provide user ID ");
 
         sessionManager.authorizeSession(userToLogOut.getId(), session, request);
         sessionManager.logOut(session);
 
-        return modelMapper.map(userToLogOut, UserToReturnDTO.class);
+        return modelMapper.map(userToLogOut, ReturnUserDTO.class);
     }
 
-    public UserToReturnDTO login(RequestUserDTO userToLogin, HttpSession session, HttpServletRequest request) {
+    public ReturnUserDTO login(RequestUserDTO userToLogin, HttpSession session, HttpServletRequest request) {
         String username = userToLogin.getUsername();
         String email = userToLogin.getEmail();
         String password = userToLogin.getPassword();
@@ -51,10 +51,10 @@ public class UserService {
 
         sessionManager.login(userEntity.getId(), session, request);
 
-        return modelMapper.map(userEntity, UserToReturnDTO.class);
+        return modelMapper.map(userEntity, ReturnUserDTO.class);
     }
 
-    public UserToReturnDTO changePassword(RequestUserDTO requestUserDTO, HttpSession session, HttpServletRequest request) {
+    public ReturnUserDTO changePassword(RequestUserDTO requestUserDTO, HttpSession session, HttpServletRequest request) {
         sessionManager.authorizeSession(requestUserDTO.getId(), session, request);
         UserEntity userEntity = userRepository.findById((long) session.getAttribute(SessionManager.USER_ID)).orElseThrow(() -> new InvalidData("Please provide user ID"));
 
@@ -69,10 +69,10 @@ public class UserService {
         userEntity.setPassword(hashedPassword);
         userRepository.save(userEntity);
 
-        return modelMapper.map(userEntity, UserToReturnDTO.class);
+        return modelMapper.map(userEntity, ReturnUserDTO.class);
     }
 
-    public UserToReturnDTO edit(RequestUserDTO requestUserDTO, HttpSession session, HttpServletRequest request) {
+    public ReturnUserDTO edit(RequestUserDTO requestUserDTO, HttpSession session, HttpServletRequest request) {
         sessionManager.authorizeSession(requestUserDTO.getId(), session, request);
 
         UserEntity user = userRepository.findById(requestUserDTO.getId()).orElseThrow(() -> new InvalidData("Please provide user ID"));
@@ -94,10 +94,10 @@ public class UserService {
         updatedUserEntity.setPassword(user.getPassword());
         userRepository.save(updatedUserEntity);
 
-        return modelMapper.map(updatedUserEntity, UserToReturnDTO.class);
+        return modelMapper.map(updatedUserEntity, ReturnUserDTO.class);
     }
 
-    public UserToReturnDTO registerUser(RequestUserDTO requestUserDTO) {
+    public ReturnUserDTO registerUser(RequestUserDTO requestUserDTO) {
         String username = requestUserDTO.getUsername();
         String email = requestUserDTO.getEmail();
         String password = requestUserDTO.getPassword();
@@ -116,7 +116,7 @@ public class UserService {
 
         //TODO: sendEmailVerification(userEntity.getEmail()); SomeClass.sendEmail("http://123.453.456.45:8080/confirm/" + userEntity.getId())
 
-        return UserToReturnDTO.builder()
+        return ReturnUserDTO.builder()
                 .id(userEntity.getId())
                 .username(userEntity.getUsername())
                 .fullName(userEntity.getFullName())
@@ -124,19 +124,19 @@ public class UserService {
                 .build();
     }
 
-    public UserToReturnDTO getById(long id) {
+    public ReturnUserDTO getById(long id) {
         UserEntity userEntity = userRepository.findById(id).orElseThrow(() -> new InvalidData("User with id - " + id + " does not exists."));
-        return modelMapper.map(userEntity, UserToReturnDTO.class);
+        return modelMapper.map(userEntity, ReturnUserDTO.class);
     }
 
-    public UserToReturnDTO getByUsername(String username) {
+    public ReturnUserDTO getByUsername(String username) {
         UserEntity userEntity = userRepository.findUserEntityByUsername(username).orElseThrow(() -> new InvalidData("Username '" + username + "' does not exists."));
-        return modelMapper.map(userEntity, UserToReturnDTO.class);
+        return modelMapper.map(userEntity, ReturnUserDTO.class);
     }
 
-    public UserToReturnDTO getByFullName(String fullName) {
+    public ReturnUserDTO getByFullName(String fullName) {
         UserEntity userEntity = userRepository.findUserEntityByFullName(fullName).orElseThrow(() -> new InvalidData("User with full name - [" + fullName + "] does not exists."));
-        return modelMapper.map(userEntity, UserToReturnDTO.class);
+        return modelMapper.map(userEntity, ReturnUserDTO.class);
     }
 
     private UserEntity loginWithEmail(String email, String password) {
@@ -155,14 +155,14 @@ public class UserService {
         return userEntity;
     }
 
-    public UserToReturnDTO deleteUser(RequestUserDTO userToDelete, HttpSession session, HttpServletRequest request) {
+    public ReturnUserDTO deleteUser(RequestUserDTO userToDelete, HttpSession session, HttpServletRequest request) {
 
         if (userToDelete.getId() == null) throw new InvalidData("Please provide user ID ");
         UserEntity userEntity = userRepository.findById(userToDelete.getId()).orElseThrow(() -> new InvalidData("No such user found"));
         sessionManager.authorizeSession(userEntity.getId(), session, request);
         userRepository.deleteById(userToDelete.getId());
 
-        return modelMapper.map(userEntity, UserToReturnDTO.class);
+        return modelMapper.map(userEntity, ReturnUserDTO.class);
     }
 
 //    public UserToReturnDTO forgottenPassword(RequestUserDTO requestUserDTO, HttpSession session, HttpServletRequest request) {

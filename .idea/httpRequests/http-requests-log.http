@@ -1,0 +1,50 @@
+POST http://localhost:8080/api/users/login
+Content-Type: application/api/json
+{:
+"email" : "gosho@abv.bg",
+"password" : "gosho"
+}:
+
+<> 2022-02-19T222233.400.html
+
+###
+
+POST http://localhost:8080/api/users/login
+Content-Type: application/api/json
+{:
+"email" : "gosho@abv.bg",
+"password" : "gosho"
+}:
+
+<> 2022-02-19T221915.400.html
+
+###
+
+POST http://localhost:8080/api/users/login
+Content-Type: application/json
+{:
+"email" : "gosho@abv.bg",
+"password" : "gosho"
+}:
+
+<> 2022-02-19T221716.400.html
+
+###
+
+POST http://localhost:8080/users/login
+Content-Type: application/json
+{:
+"username" : "Gosho",
+"password" : "gosho"
+}:
+
+<> 2022-02-19T221526.400.html
+
+###
+
+GET http://localhost:8080/api/posts/get-by-text/?t=Gosho
+
+<> 2022-02-19T221504.401.json
+
+###
+

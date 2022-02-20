@@ -20,7 +20,7 @@ public class SessionManager {
         session.setMaxInactiveInterval(-1);
     }
 
-    public void authorizeSession (Long providedId, HttpSession session, HttpServletRequest request) {
+    public void authorizeSession (Long providedUserID, HttpSession session, HttpServletRequest request) {
         if (session.isNew()) throw new UnauthorizedAccess("This is NEW session. Cannot execute request!");
 
         String loggedFrom = (String) session.getAttribute(LOGGED_FROM);
@@ -29,9 +29,9 @@ public class SessionManager {
         if (session.getAttribute(LOGGED) == null || (Integer)session.getAttribute(LOGGED) != 1)
             throw new UnauthorizedAccess("User must be logged first!");
 
-        if (providedId != null){
+        if (providedUserID != null){
             Long userIdFromSession = (Long) session.getAttribute(USER_ID);
-            if (!providedId.equals(userIdFromSession)) throw new UnauthorizedAccess("User trying to manipulate foreign profile");
+            if (!providedUserID.equals(userIdFromSession)) throw new UnauthorizedAccess("User trying to manipulate foreign profile");
         }
 
     }

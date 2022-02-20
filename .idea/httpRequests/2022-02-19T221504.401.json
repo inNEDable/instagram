@@ -1,0 +1,4 @@
+{
+  "message": "Unauthorized access : This is NEW session. Cannot execute request!",
+  "status": 401
+}

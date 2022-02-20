@@ -6,7 +6,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserToReturnDTO {
+public class ReturnUserDTO {
 
     private Long id;
 

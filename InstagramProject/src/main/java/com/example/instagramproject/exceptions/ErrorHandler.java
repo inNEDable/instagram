@@ -14,7 +14,7 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(value = {InvalidData.class})
     protected ResponseEntity<ErrorDTO> handleConflict(RuntimeException ex) {
         ErrorDTO errorDTO = new ErrorDTO();
-        errorDTO.setMessage("Invalid user data: " + ex.getMessage());
+        errorDTO.setMessage("Invalid data: " + ex.getMessage());
         errorDTO.setStatus(HttpStatus.NOT_ACCEPTABLE.value());
         return new ResponseEntity<>(errorDTO,HttpStatus.NOT_ACCEPTABLE );
     }
