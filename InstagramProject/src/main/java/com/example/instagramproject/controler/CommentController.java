@@ -1,9 +1,7 @@
 package com.example.instagramproject.controler;
 
 import com.example.instagramproject.model.DTO.RequestCommentPostDTO;
-import com.example.instagramproject.model.DTO.RequestLikeDTO;
 import com.example.instagramproject.model.DTO.ReturnCommentDTO;
-import com.example.instagramproject.model.DTO.ReturnLikeDTO;
 import com.example.instagramproject.service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,15 +29,18 @@ public class CommentController {
         return new ResponseEntity<>(returnCommentDTO, HttpStatus.OK);
     }
 
-    @PostMapping("/like")
-    public ResponseEntity<ReturnLikeDTO> likeComment(@RequestBody RequestLikeDTO requestLikeDTO, HttpServletRequest request) {
-        ReturnLikeDTO returnLikeDTO = commentService.likeComment(requestLikeDTO, request);
-        return new ResponseEntity<>(returnLikeDTO, HttpStatus.CREATED);
+    @PostMapping("/{commentId}/like")
+    public Long likeCommentPost(@PathVariable(name = "commentId") Long commentId, HttpServletRequest request) {
+        return commentService.likeCommentPost(commentId, request);
     }
 
-    @DeleteMapping("/like-delete")
-    public ResponseEntity<ReturnLikeDTO> deleteLikeComment(@RequestBody RequestLikeDTO requestLikeDTO, HttpServletRequest request) {
-        ReturnLikeDTO returnLikeDTO = commentService.deleteLike(requestLikeDTO, request);
-        return new ResponseEntity<>(returnLikeDTO, HttpStatus.OK);
+    @PostMapping("/{commentId}/unlike")
+    public Long unlikeCommentPost(@PathVariable(name = "commentId") Long commentId, HttpServletRequest request) {
+        return commentService.unlikeCommentPost(commentId, request);
+    }
+
+    @GetMapping("/get-all-likes-comment/{commentId}")
+    public Long getAllLikesCommentPost(@PathVariable(name = "commentId") Long commentId, HttpServletRequest request) {
+        return commentService.getLikeCount(commentId, request);
     }
 }

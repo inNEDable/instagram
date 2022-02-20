@@ -41,8 +41,12 @@ public class CommentEntity {
     @OneToMany(mappedBy = "comment")
     private Set<SubCommentEntity> subComments;
 
-    @OneToMany(mappedBy = "comment")
-    private Set<LikeCommentEntity> likes;
+    @ManyToMany
+    @JoinTable(
+            name = "users_like_post_comments",
+            joinColumns = @JoinColumn(name = "post_comment_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
+    private Set<UserEntity> likers;
 
     @Override
     public boolean equals(Object o) {

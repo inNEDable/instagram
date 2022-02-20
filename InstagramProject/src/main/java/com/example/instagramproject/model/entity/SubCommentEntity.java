@@ -9,6 +9,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.Set;
 
 
 @Entity
@@ -37,6 +38,13 @@ public class SubCommentEntity {
     @ManyToOne
     @JoinColumn(name = "parent_comment_id", nullable=false)
     private CommentEntity comment;
+
+    @ManyToMany
+    @JoinTable(
+            name = "users_like_sub_comments",
+            joinColumns = @JoinColumn(name = "sub_comment_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
+    private Set<UserEntity> likers;
 
     @Override
     public boolean equals(Object o) {

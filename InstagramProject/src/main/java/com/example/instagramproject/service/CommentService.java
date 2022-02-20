@@ -2,9 +2,7 @@ package com.example.instagramproject.service;
 
 import com.example.instagramproject.exceptions.InvalidData;
 import com.example.instagramproject.model.DTO.RequestCommentPostDTO;
-import com.example.instagramproject.model.DTO.RequestLikeDTO;
 import com.example.instagramproject.model.DTO.ReturnCommentDTO;
-import com.example.instagramproject.model.DTO.ReturnLikeDTO;
 import com.example.instagramproject.model.entity.*;
 import com.example.instagramproject.model.repository.*;
 import org.modelmapper.ModelMapper;
@@ -19,9 +17,6 @@ public class CommentService {
 
     @Autowired
     private CommentRepository commentRepository;
-
-    @Autowired
-    private LikeCommentRepository likeCommentRepository;
 
     @Autowired
     private SessionManager sessionManager;
@@ -67,53 +62,42 @@ public class CommentService {
         return modelMapper.map(comment, ReturnCommentDTO.class);
     }
 
-    public ReturnLikeDTO likeComment(RequestLikeDTO likeComment, HttpServletRequest request) {
-        if (likeComment.getCommentId() == null) throw new InvalidData("Invalid data");
+    public Long likeCommentPost(Long commentId, HttpServletRequest request) {
+        sessionManager.authorizeSession(null, request.getSession(), request);
+        CommentEntity comment = getCommentById(commentId);
+        UserEntity user = getUserById((long)request.getSession().getAttribute(SessionManager.USER_ID));
+        if (user.getLikedComments().contains(comment)) {
+            throw new InvalidData("User already liked this comment");
+        }
+        comment.getLikers().add(user);
+        commentRepository.save(comment);
 
-        sessionManager.authorizeSession(likeComment.getUserId(), request.getSession(), request);
-        UserEntity user = userRepository.findById(likeComment.getUserId())
-                .orElseThrow(() -> new InvalidData("User ID doesn't exist"));
-        CommentEntity comment = commentRepository.findById(likeComment.getCommentId())
-                .orElseThrow(() -> new InvalidData("Comment ID doesn't exist"));
-        //tODO Проверка дали съм го лайкнал
-        LikeCommentEntity like = new LikeCommentEntity();
-        like.setUser(user);
-        like.setComment(comment);
-        likeCommentRepository.save(like);
-        ReturnLikeDTO returnLikeDTO = new ReturnLikeDTO();
-        returnLikeDTO.setId(like.getId());
-        returnLikeDTO.setUserId(user.getId());
-        returnLikeDTO.setPostId(likeComment.getPostId());
-        returnLikeDTO.setCommentId(comment.getId());
-
-        return returnLikeDTO;
+        return (long)comment.getLikers().size();
     }
 
-
-    public ReturnLikeDTO deleteLike(RequestLikeDTO likeToDelete, HttpServletRequest request) {
-        if (likeToDelete.getId() == null) throw new InvalidData("Invalid date");
-
-        sessionManager.authorizeSession((long)request.getSession().getAttribute(SessionManager.USER_ID), request.getSession(), request);
-        LikeCommentEntity likeComment = likeCommentRepository.findById(likeToDelete.getId())
-                .orElseThrow(() -> new InvalidData("Like ID doesn't exist"));
-        UserEntity user = userRepository.findById(likeToDelete.getUserId())
-                .orElseThrow(() -> new InvalidData("User ID doesn't exist"));
-        CommentEntity comment = commentRepository.findById(likeToDelete.getCommentId())
-                .orElseThrow(() -> new InvalidData("Comment ID doesn't exist"));
-
-        if (likeComment.getComment().equals(comment) && likeComment.getUser().equals(user)) {
-            likeCommentRepository.deleteById(likeToDelete.getId());
+    public Long unlikeCommentPost(Long commentId, HttpServletRequest request) {
+        sessionManager.authorizeSession(null, request.getSession(), request);
+        CommentEntity comment = getCommentById(commentId);
+        UserEntity user = getUserById((long)request.getSession().getAttribute(SessionManager.USER_ID));
+        if (!user.getLikedComments().contains(comment)) {
+            throw new InvalidData("User did not like this comment");
         }
-        else {
-            throw new InvalidData("Invalid data");
-        }
+        comment.getLikers().remove(user);
+        commentRepository.save(comment);
 
-        ReturnLikeDTO returnLikeDTO = new ReturnLikeDTO();
-        returnLikeDTO.setId(likeComment.getId());
-        returnLikeDTO.setUserId(user.getId());
-        returnLikeDTO.setPostId(likeToDelete.getPostId());
-        returnLikeDTO.setCommentId(comment.getId());
+        return (long)comment.getLikers().size();
+    }
 
-        return returnLikeDTO;
+    public Long getLikeCount(Long commentId, HttpServletRequest request) {
+        CommentEntity comment = getCommentById(commentId);
+        return (long)comment.getLikers().size();
+    }
+
+    private CommentEntity getCommentById(Long id) {
+        return commentRepository.findById(id).orElseThrow(() -> new InvalidData("Comment ID doesn't exist"));
+    }
+
+    private UserEntity getUserById(Long id) {
+        return userRepository.findById(id).orElseThrow(() -> new InvalidData("User ID doesn't exist"));
     }
 }

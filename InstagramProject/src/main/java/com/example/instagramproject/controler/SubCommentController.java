@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping("api/sub-comment")
+@RequestMapping("api/sub-comments")
 public class SubCommentController {
 
     @Autowired
@@ -27,5 +27,20 @@ public class SubCommentController {
     public ResponseEntity<ReturnCommentDTO> deleteSubComment(@RequestBody RequestSubCommentDTO createSubCommentDTO, HttpServletRequest request) {
         ReturnCommentDTO returnCommentDTO = subCommentService.deleteSubComment(createSubCommentDTO, request);
         return new ResponseEntity<>(returnCommentDTO, HttpStatus.OK);
+    }
+
+    @PostMapping("/{subCommentId}/like")
+    public Long likeCommentPost(@PathVariable(name = "subCommentId") Long subCommentId, HttpServletRequest request) {
+        return subCommentService.likeSubComment(subCommentId, request);
+    }
+
+    @PostMapping("/{subCommentId}/unlike")
+    public Long unlikeCommentPost(@PathVariable(name = "subCommentId") Long subCommentId, HttpServletRequest request) {
+        return subCommentService.unlikeSubComment(subCommentId, request);
+    }
+
+    @GetMapping("/get-all-likes-sub-comment/{subCommentId}")
+    public Long getAllLikesCommentPost(@PathVariable(name = "subCommentId") Long subCommentId, HttpServletRequest request) {
+        return subCommentService.getLikeCount(subCommentId, request);
     }
 }

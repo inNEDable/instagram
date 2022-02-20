@@ -63,4 +63,45 @@ public class SubCommentService {
 
         return modelMapper.map(subComment, ReturnCommentDTO.class);
     }
+
+    public Long likeSubComment(Long subCommentId, HttpServletRequest request) {
+        sessionManager.authorizeSession(null, request.getSession(), request);
+        SubCommentEntity subComment = getSubCommentById(subCommentId);
+        UserEntity user = getUserById((long)request.getSession().getAttribute(SessionManager.USER_ID));
+        if (user.getLikedSubComments().contains(subComment)) {
+            throw new InvalidData("User already liked this comment");
+        }
+        subComment.getLikers().add(user);
+        subCommentRepository.save(subComment);
+
+        return (long)subComment.getLikers().size();
+    }
+
+    public Long unlikeSubComment(Long subCommentId, HttpServletRequest request) {
+        sessionManager.authorizeSession(null, request.getSession(), request);
+        SubCommentEntity subComment = getSubCommentById(subCommentId);
+        UserEntity user = getUserById((long)request.getSession().getAttribute(SessionManager.USER_ID));
+        if (!user.getLikedSubComments().contains(subComment)) {
+            throw new InvalidData("User did not like this comment");
+        }
+        subComment.getLikers().remove(user);
+        subCommentRepository.save(subComment);
+
+        return (long)subComment.getLikers().size();
+    }
+
+    public Long getLikeCount(Long subCommentId, HttpServletRequest request) {
+        SubCommentEntity subComment = getSubCommentById(subCommentId);
+        return (long)subComment.getLikers().size();
+    }
+
+    private SubCommentEntity getSubCommentById(Long id) {
+        return subCommentRepository.findById(id).orElseThrow(() -> new InvalidData("Comment ID doesn't exist"));
+    }
+
+    private UserEntity getUserById(Long id) {
+        return userRepository.findById(id).orElseThrow(() -> new InvalidData("User ID doesn't exist"));
+    }
+
+
 }

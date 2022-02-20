@@ -62,8 +62,11 @@ public class UserEntity {
     @OneToMany(mappedBy= "user", cascade = CascadeType.ALL)
     private Set<CommentEntity> comments;
 
-    @OneToMany(mappedBy= "user", cascade = CascadeType.ALL)
-    private Set<LikeCommentEntity> likes;
+    @ManyToMany(mappedBy = "likers")
+    private Set<CommentEntity> likedComments;
+
+    @ManyToMany(mappedBy = "likers")
+    private Set<SubCommentEntity> likedSubComments;
 
     public UserEntity(String username, String email, String password, String fullName) {
         this.username = username;
