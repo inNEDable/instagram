@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 @Service
 public class TagService {
@@ -64,7 +65,7 @@ public class TagService {
 
     }
 
-    public Set<PostEntity> getAllPostsByTag(String tagText, HttpServletRequest request) {
+    public TreeSet<PostEntity> getAllPostsByTag(String tagText, HttpServletRequest request) {
         if (tagText == null) throw new InvalidData("Tag id not provided");
         sessionManager.authorizeSession(null, request.getSession(), request);
         TagEntity tagEntity = tagRepository.findByText(tagText);
@@ -73,7 +74,7 @@ public class TagService {
         Set<PostEntity> postEntities = tagEntity.getPosts();
         if (postEntities.isEmpty()) throw new InvalidData("This tag has no posts");
 
-        return modelMapper.map(postEntities, new TypeToken<Set<ReturnPostDTO>>() {}.getType());
+        return modelMapper.map(postEntities, new TypeToken<TreeSet<ReturnPostDTO>>() {}.getType());
 
     }
 

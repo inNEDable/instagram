@@ -1,6 +1,7 @@
 package com.example.instagramproject.model.DTO;
 
 import com.example.instagramproject.model.entity.PostMediaEntity;
+import com.example.instagramproject.model.entity.TagEntity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
@@ -18,7 +19,7 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReturnPostDTO {
+public class ReturnPostDTO implements Comparable<ReturnPostDTO> {
 
 
     private Long id;
@@ -30,6 +31,8 @@ public class ReturnPostDTO {
     private String text;
 
     private Set<PostMediaEntity> postMediaEntities;
+
+    private Set<TagEntity> tags;
 
 
     @Override
@@ -45,5 +48,14 @@ public class ReturnPostDTO {
     @JsonFormat(pattern="yyyy-MM-dd || hh-mm-ss")
     public LocalDateTime getDateTime() {
         return dateTime;
+    }
+
+    @Override
+    public int compareTo(ReturnPostDTO otherPost) {
+        if (otherPost.getDateTime().isBefore(this.dateTime)){
+            return -1;
+        } else {
+            return 1;
+        }
     }
 }

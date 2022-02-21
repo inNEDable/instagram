@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.TreeSet;
 
 @RestController
 @RequestMapping("api/posts")
@@ -65,8 +66,8 @@ public class PostController {
     }
 
     @GetMapping("/all-from-user/{userId}")
-    public ResponseEntity<List<ReturnPostDTO>> getAllPostsFromUser(@PathVariable Long userId, HttpServletRequest request){
-        List<ReturnPostDTO> posts = postService.getAllPostsFromUser(userId, request);
+    public ResponseEntity<TreeSet<ReturnPostDTO>> getAllPostsFromUser(@PathVariable Long userId, HttpServletRequest request){
+        TreeSet<ReturnPostDTO> posts = postService.getAllPostsFromUser(userId, request);
 
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.set("NumberOfPosts", String.valueOf(posts.size()));
@@ -75,8 +76,8 @@ public class PostController {
     }
 
     @GetMapping("/get-by-text")
-    public ResponseEntity<List<ReturnPostDTO>> getAllPostsByText (@RequestParam String t, HttpServletRequest request){
-        List<ReturnPostDTO> posts = postService.getAllPostsByText(t, request);
+    public ResponseEntity<TreeSet<ReturnPostDTO>> getAllPostsByText (@RequestParam String t, HttpServletRequest request){
+        TreeSet<ReturnPostDTO> posts = postService.getAllPostsByText(t, request);
 
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.set("NumberOfPosts", String.valueOf(posts.size()));

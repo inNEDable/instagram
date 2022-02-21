@@ -27,6 +27,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.TreeSet;
 
 
 @Service
@@ -150,23 +151,23 @@ public class PostService {
         return modelMapper.map(postEntity, ReturnPostDTO.class);
     }
 
-    public List<ReturnPostDTO> getAllPostsFromUser(Long userId, HttpServletRequest request) {
+    public TreeSet<ReturnPostDTO> getAllPostsFromUser(Long userId, HttpServletRequest request) {
         userExistsCheck(userId);
         sessionManager.authorizeSession(null, request.getSession(), request);
 
         List<PostEntity> postEntities = postRepository.findAllByUserId(userId);
         if (postEntities.isEmpty()) throw new InvalidData("User doesn't have any posts yet");
 
-        return modelMapper.map(postEntities, new TypeToken<List<ReturnPostDTO>>() {}.getType());
+        return modelMapper.map(postEntities, new TypeToken<TreeSet<ReturnPostDTO>>() {}.getType());
     }
 
-    public List<ReturnPostDTO> getAllPostsByText(String t, HttpServletRequest request) {
+    public TreeSet<ReturnPostDTO> getAllPostsByText(String t, HttpServletRequest request) {
         sessionManager.authorizeSession(null, request.getSession(), request);
 
         List<PostEntity> postEntities1 = postRepository.findAllByTextContaining(t);
         if (postEntities1.isEmpty()) throw new InvalidData("No posts with provided text are found");
 
-        return modelMapper.map(postEntities1, new TypeToken<List<ReturnPostDTO>>() {}.getType());
+        return modelMapper.map(postEntities1, new TypeToken<TreeSet<ReturnPostDTO>>() {}.getType());
     }
 
     private void userExistsCheck(Long userId) {

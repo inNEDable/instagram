@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Set;
+import java.util.TreeSet;
 
 @RestController
 @RequestMapping("/api/tags")
@@ -29,8 +30,8 @@ public class TagController {
     }
 
     @GetMapping("/get-all-posts-by/{tagText}")
-    public ResponseEntity<Set<PostEntity>> getAllPostsByTag (@PathVariable String tagText, HttpServletRequest request){
-        Set<PostEntity> postEntities = tagService.getAllPostsByTag(tagText, request);
+    public ResponseEntity<TreeSet<PostEntity>> getAllPostsByTag (@PathVariable String tagText, HttpServletRequest request){
+        TreeSet<PostEntity> postEntities = tagService.getAllPostsByTag(tagText, request);
         return new ResponseEntity<>(postEntities, HttpStatus.OK);
     }
 
