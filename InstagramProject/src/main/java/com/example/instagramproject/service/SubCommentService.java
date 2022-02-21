@@ -9,6 +9,7 @@ import com.example.instagramproject.model.entity.UserEntity;
 import com.example.instagramproject.model.repository.CommentRepository;
 import com.example.instagramproject.model.repository.SubCommentRepository;
 import com.example.instagramproject.model.repository.UserRepository;
+import com.example.instagramproject.util.Validator;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 @Service
 public class SubCommentService {
 
+    public static final int MAX_SUB_COMMENT_LENGTH = 500;
     @Autowired
     private CommentRepository commentRepository;
 
@@ -35,6 +37,7 @@ public class SubCommentService {
     private UserRepository userRepository;
 
     public ReturnCommentDTO crateSubComment(RequestSubCommentDTO createSubCommentDTO, HttpServletRequest request) {
+        Validator.validateStringLength(0, MAX_SUB_COMMENT_LENGTH, createSubCommentDTO.getText());
         if (createSubCommentDTO.getText().isBlank()
                 || createSubCommentDTO.getUserId() == null) throw new InvalidData("Invalid data");
 

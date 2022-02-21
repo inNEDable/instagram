@@ -12,12 +12,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 @Service
 public class UserService {
 
 
+    public static final int MIN_USERNAME_LENGTH = 3;
+    public static final int MAX_USERNAME_LENGTH = 20;
+    public static final int MIN_FULL_NAME_LENGTH = 3;
+    public static final int MAX_FULL_NAME_LENGTH = 30;
     @Autowired
     private UserRepository userRepository;
 
@@ -79,18 +82,29 @@ public class UserService {
         sessionManager.authorizeSession(requestUserDTO.getId(), request.getSession(), request);
 
         UserEntity user = userRepository.findById(requestUserDTO.getId()).orElseThrow(() -> new InvalidData("Please provide user ID"));
-        if (!user.getUsername().equals(requestUserDTO.getUsername())) {
-            Validator.validateUsernameExists(userRepository, requestUserDTO.getUsername(), "This username isn't available. Please try another");
+
+        if (requestUserDTO.getUsername() != null && !user.getUsername().equals(requestUserDTO.getUsername())) {
+            Validator.validateUsernameExists(userRepository, requestUserDTO.getUsername());
+            Validator.validateStringLength(MIN_USERNAME_LENGTH, MAX_USERNAME_LENGTH, requestUserDTO.getUsername() );
         }
-        if (!user.getEmail().equals(requestUserDTO.getEmail())) {
+
+        if (requestUserDTO.getFullName() != null && !requestUserDTO.getFullName().equals(user.getFullName())){
+            Validator.validateStringLength(MIN_FULL_NAME_LENGTH, MAX_FULL_NAME_LENGTH, requestUserDTO.getFullName());
+        }
+
+        if (requestUserDTO.getEmail() != null && !user.getEmail().equals(requestUserDTO.getEmail())) {
             Validator.validateEmailExists(userRepository, requestUserDTO.getEmail());
+            Validator.validateEmailPatternMatches(requestUserDTO.getEmail());
         }
-        if (!Validator.validateEmailPatternMatches(requestUserDTO.getEmail()))
-            throw new InvalidData("Enter a valid email address.");
-        if (requestUserDTO.getWebsite() != null) {
-            if (!Validator.validateWebSitePatternMatches(requestUserDTO.getWebsite()))
-                throw new InvalidData("Enter a valid website.");
+
+        if (requestUserDTO.getGender() != null && user.getGender()!= requestUserDTO.getGender()){
+            Validator.validateGender(requestUserDTO.getGender());
         }
+
+        if (requestUserDTO.getWebsite() != null && !requestUserDTO.getWebsite().equals(user.getWebsite()) ){
+            Validator.validateWebSitePatternMatches(requestUserDTO.getWebsite());
+        }
+
 
         UserEntity updatedUserEntity = modelMapper.map(requestUserDTO, UserEntity.class);
 
@@ -108,17 +122,17 @@ public class UserService {
         String confirmPassword = requestUserDTO.getConfirmPassword();
 
         if (username.isBlank()) throw new InvalidData("Username can't be blank!");
-        Validator.validateUsernameExists(userRepository, username, "This username isn't available. Please try another.");
+        Validator.validateUsernameExists(userRepository, username);
         if (!password.equals(confirmPassword)) throw new InvalidData("Passwords don't match");
-        if (!Validator.validateEmailPatternMatches(email)) throw new InvalidData("Invalid email");
+        Validator.validateEmailPatternMatches(email);
         Validator.validateEmailExists(userRepository, requestUserDTO.getEmail());
+        Validator.validateStringLength(MIN_USERNAME_LENGTH, MAX_USERNAME_LENGTH, requestUserDTO.getUsername());
+        Validator.validateStringLength(MIN_FULL_NAME_LENGTH, MAX_FULL_NAME_LENGTH, requestUserDTO.getFullName());
 
         UserEntity userEntity = modelMapper.map(requestUserDTO, UserEntity.class);
         String hashedPassword = passwordEncoder.encode(requestUserDTO.getPassword());
         userEntity.setPassword(hashedPassword);
         userRepository.save(userEntity);
-
-        //TODO: sendEmailVerification(userEntity.getEmail()); SomeClass.sendEmail("http://123.453.456.45:8080/confirm/" + userEntity.getId())
 
         return ReturnUserDTO.builder()
                 .id(userEntity.getId())
@@ -133,13 +147,16 @@ public class UserService {
         return modelMapper.map(userEntity, ReturnUserDTO.class);
     }
 
-    public ReturnUserDTO getByUsername(String username) {
-        UserEntity userEntity = userRepository.findUserEntityByUsername(username).orElseThrow(() -> new InvalidData("Username '" + username + "' does not exists."));
+    public ReturnUserDTO getByUsername(String username, HttpServletRequest request) {
+        Validator.validateStringLength(0, MAX_USERNAME_LENGTH, username);
+        sessionManager.authorizeSession(null, request.getSession(), request);
+        UserEntity userEntity = userRepository.findUserEntityByUsernameContaining(username).orElseThrow(() -> new InvalidData("Username '" + username + "' does not exists."));
         return modelMapper.map(userEntity, ReturnUserDTO.class);
     }
 
     public ReturnUserDTO getByFullName(String fullName) {
-        UserEntity userEntity = userRepository.findUserEntityByFullName(fullName).orElseThrow(() -> new InvalidData("User with full name - [" + fullName + "] does not exists."));
+        Validator.validateStringLength(0, MAX_FULL_NAME_LENGTH, fullName);
+        UserEntity userEntity = userRepository.findUserEntityByFullNameContaining(fullName).orElseThrow(() -> new InvalidData("User with full name - [" + fullName + "] does not exists."));
         return modelMapper.map(userEntity, ReturnUserDTO.class);
     }
 
@@ -152,7 +169,7 @@ public class UserService {
     }
 
     private UserEntity loginWithUsername(String username, String password) {
-        UserEntity userEntity = userRepository.findUserEntityByUsername(username).orElseThrow(() -> new InvalidData("Invalid username"));
+        UserEntity userEntity = userRepository.findUserEntityByUsernameContaining(username).orElseThrow(() -> new InvalidData("Invalid username"));
         boolean passwordMatches = passwordEncoder.matches(password, userEntity.getPassword());
         if (!passwordMatches) throw new InvalidData("Invalid password");
 
@@ -172,13 +189,4 @@ public class UserService {
         return modelMapper.map(userEntity, ReturnUserDTO.class);
     }
 
-//    public UserToReturnDTO forgottenPassword(RequestUserDTO requestUserDTO, HttpSession session, HttpServletRequest request) {
-//        sessionManager.authorizeSession(requestUserDTO.getId(), session, request);
-//
-//        Validator.validateEmailPatternMatches(requestUserDTO.getEmail());
-//        UserEntity userEntity = userRepository.findUserEntityByEmail(requestUserDTO.getEmail()).orElseThrow(() -> new InvalidUserData("Enter a valid email address."));
-//
-//
-//        return null;
-//    }
 }

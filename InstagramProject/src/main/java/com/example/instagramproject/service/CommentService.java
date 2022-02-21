@@ -5,6 +5,7 @@ import com.example.instagramproject.model.DTO.RequestCommentPostDTO;
 import com.example.instagramproject.model.DTO.ReturnCommentDTO;
 import com.example.instagramproject.model.entity.*;
 import com.example.instagramproject.model.repository.*;
+import com.example.instagramproject.util.Validator;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 @Service
 public class CommentService {
 
+    public static final int MAX_COMMENT_LENGTH = 500;
     @Autowired
     private CommentRepository commentRepository;
 
@@ -31,6 +33,7 @@ public class CommentService {
     private PostRepository postRepository;
 
     public ReturnCommentDTO createCommentPost(RequestCommentPostDTO createCommentPostDTO, HttpServletRequest request) {
+        Validator.validateStringLength(0, MAX_COMMENT_LENGTH, createCommentPostDTO.getText());
         if (createCommentPostDTO.getText().isBlank()
                 || createCommentPostDTO.getUserId() == null) throw new InvalidData("Invalid data");
 

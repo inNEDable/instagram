@@ -61,8 +61,8 @@ public class UserController {
     }
 
     @GetMapping("/find-by-username/{username}")
-    public ResponseEntity<ReturnUserDTO> getByUsername(@PathVariable(name = "username") String username) {
-        ReturnUserDTO returnUserDTO = userService.getByUsername(username);
+    public ResponseEntity<ReturnUserDTO> getByUsername(@PathVariable(name = "username") String username, HttpServletRequest request) {
+        ReturnUserDTO returnUserDTO = userService.getByUsername(username, request);
         return new ResponseEntity<>(returnUserDTO, HttpStatus.OK);
     }
 

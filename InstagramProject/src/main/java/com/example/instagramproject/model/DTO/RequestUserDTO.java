@@ -33,7 +33,7 @@ public class RequestUserDTO {
 
     private String phoneNumber;
 
-    private String gender;
+    private Character gender;
 
     private LocalDate birthDate;
 

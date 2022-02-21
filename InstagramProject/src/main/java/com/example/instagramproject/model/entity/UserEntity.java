@@ -41,7 +41,7 @@ public class UserEntity {
     private String phoneNumber;
 
     @Column
-    private String gender;
+    private Character gender;
 
     @Column(name = "birth_date")
     @DateTimeFormat(pattern = "dd/mm/yyyy")

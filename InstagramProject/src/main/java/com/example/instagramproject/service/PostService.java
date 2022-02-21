@@ -10,6 +10,7 @@ import com.example.instagramproject.model.entity.UserEntity;
 import com.example.instagramproject.model.repository.PostMediaRepository;
 import com.example.instagramproject.model.repository.PostRepository;
 import com.example.instagramproject.model.repository.UserRepository;
+import com.example.instagramproject.util.Validator;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FilenameUtils;
 import org.modelmapper.ModelMapper;
@@ -34,6 +35,7 @@ import java.util.TreeSet;
 public class PostService {
 
     public static final String ALL_POSTS_FOLDER = "allPosts";
+    public static final int MAX_POST_TEXT_LENGTH = 1500;
 
     @Autowired
     private PostRepository postRepository;
@@ -52,6 +54,7 @@ public class PostService {
 
 
     public ReturnPostDTO createPost(RequestPostDTO requestPostDTO, HttpServletRequest request) {
+        Validator.validateStringLength(0, MAX_POST_TEXT_LENGTH, requestPostDTO.getText());
         if (requestPostDTO.getText().isBlank()
                 || requestPostDTO.getUserId() == null) throw new InvalidData("Invalid data");
 
