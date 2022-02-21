@@ -97,12 +97,12 @@ public class PostService {
 
         postMediaRepository.save(postMediaEntity);
 
-        return fullPath.toString();
+        return fileName;
     }
 
     public void deletePost(Long userId, Long postId, HttpServletRequest request) {
         sessionManager.authorizeSession(userId, request.getSession(), request);
-        PostEntity postEntity = userManipulatingPostCheck(userId, postId);
+        userManipulatingPostCheck(userId, postId);
         postRepository.deleteById(postId);
 
         String currentPostFolder = "post-" + postId;
@@ -168,7 +168,6 @@ public class PostService {
 
         return modelMapper.map(postEntities1, new TypeToken<List<ReturnPostDTO>>() {}.getType());
     }
-
 
     private void userExistsCheck(Long userId) {
         if (userId == null || !userRepository.existsById(userId)) throw new InvalidData("User doesn't exist");

@@ -84,11 +84,5 @@ public class PostController {
         return new ResponseEntity<>(posts, responseHeaders, HttpStatus.OK);
     }
 
-//    @DeleteMapping("/delete-post-media/{postId}/{mediaURI}")
-//    public ResponseEntity<ReturnPostDTO> deleteMediaFromPost (@PathVariable Long postId, @PathVariable String mediaURI){
-//
-
-//    }
-
 
 }
