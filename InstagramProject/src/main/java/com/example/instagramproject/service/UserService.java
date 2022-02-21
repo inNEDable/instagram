@@ -70,6 +70,7 @@ public class UserService {
         if (!requestUserDTO.getNewPassword().equals(requestUserDTO.getConfirmPassword())) {
             throw new InvalidData("Please provide valid conf password");
         }
+        Validator.validateStrongPassword(requestUserDTO.getNewPassword());
 
         String hashedPassword = passwordEncoder.encode(requestUserDTO.getNewPassword());
         userEntity.setPassword(hashedPassword);
@@ -94,7 +95,7 @@ public class UserService {
 
         if (requestUserDTO.getEmail() != null && !user.getEmail().equals(requestUserDTO.getEmail())) {
             Validator.validateEmailExists(userRepository, requestUserDTO.getEmail());
-            Validator.validateEmailPatternMatches(requestUserDTO.getEmail());
+            Validator.validateRealEmail(requestUserDTO.getEmail());
         }
 
         if (requestUserDTO.getGender() != null && user.getGender()!= requestUserDTO.getGender()){
@@ -102,7 +103,7 @@ public class UserService {
         }
 
         if (requestUserDTO.getWebsite() != null && !requestUserDTO.getWebsite().equals(user.getWebsite()) ){
-            Validator.validateWebSitePatternMatches(requestUserDTO.getWebsite());
+            Validator.validateRealWebSite(requestUserDTO.getWebsite());
         }
 
 
@@ -124,7 +125,8 @@ public class UserService {
         if (username.isBlank()) throw new InvalidData("Username can't be blank!");
         Validator.validateUsernameExists(userRepository, username);
         if (!password.equals(confirmPassword)) throw new InvalidData("Passwords don't match");
-        Validator.validateEmailPatternMatches(email);
+        Validator.validateRealEmail(email);
+        Validator.validateStrongPassword(requestUserDTO.getPassword());
         Validator.validateEmailExists(userRepository, requestUserDTO.getEmail());
         Validator.validateStringLength(MIN_USERNAME_LENGTH, MAX_USERNAME_LENGTH, requestUserDTO.getUsername());
         Validator.validateStringLength(MIN_FULL_NAME_LENGTH, MAX_FULL_NAME_LENGTH, requestUserDTO.getFullName());
