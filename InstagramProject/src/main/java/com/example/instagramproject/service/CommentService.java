@@ -5,6 +5,7 @@ import com.example.instagramproject.model.DTO.RequestCommentPostDTO;
 import com.example.instagramproject.model.DTO.ReturnCommentDTO;
 import com.example.instagramproject.model.entity.*;
 import com.example.instagramproject.model.repository.*;
+import com.example.instagramproject.util.SessionManager;
 import com.example.instagramproject.util.Validator;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;

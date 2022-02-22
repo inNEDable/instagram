@@ -6,6 +6,7 @@ import com.example.instagramproject.model.DTO.ReturnUserDTO;
 import com.example.instagramproject.model.entity.UserEntity;
 import com.example.instagramproject.model.repository.UserRepository;
 import com.example.instagramproject.util.PasswordGenerator;
+import com.example.instagramproject.util.SessionManager;
 import com.example.instagramproject.util.Validator;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -232,9 +233,8 @@ public class UserService {
 
     public ReturnUserDTO userFollowsUser(Long followerId, Long followedId, HttpServletRequest request) {
         if (followerId == null || followedId == null) throw new InvalidDataException("Please provide both users IDs");
-        sessionManager.authorizeSession(followerId, request.getSession(), request);
 
-        UserEntity followerUser = userRepository.findById(followerId).orElseThrow(() -> new InvalidDataException("Follower doesn't exist"));
+        UserEntity followerUser = getUserAndWithFullVerification(followerId, request);
         UserEntity followedUser = userRepository.findById(followedId).orElseThrow(() -> new InvalidDataException("Followed doesn't exist"));
 
         if (followedUser.getFollowers().contains(followerUser))
@@ -243,21 +243,31 @@ public class UserService {
         followedUser.getFollowers().add(followerUser);
         userRepository.save(followedUser);
 
-        System.out.println(followerUser.getUsername() + " FOLLOWS " + followedUser.getUsername());
-        System.out.println(followedUser.getUsername() + " IS NOW FOLLOWED BY " + followerUser.getUsername());
+        return modelMapper.map(followedUser, ReturnUserDTO.class);
+    }
+
+    public ReturnUserDTO unFollowsUser(Long followerId, Long followedId, HttpServletRequest request) {
+        if (followerId == null || followedId == null) throw new InvalidDataException("Please provide both users IDs");
+
+        UserEntity followerUser = getUserAndWithFullVerification(followerId, request);
+        UserEntity followedUser = userRepository.findById(followedId).orElseThrow(() -> new InvalidDataException("Followed doesn't exist"));
+
+        if (!followedUser.getFollowers().contains(followerUser))
+            throw new InvalidDataException(followerUser.getUsername() + " doesn't follows " + followedUser.getUsername());
+
+        followedUser.getFollowers().remove(followerUser);
+        userRepository.save(followedUser);
 
         return modelMapper.map(followedUser, ReturnUserDTO.class);
     }
 
     public Integer getFollowers(Long userId, HttpServletRequest request) {
         UserEntity userEntity = getUserAndWithLoginVerification(userId, request);
-        if (userEntity.getFollowers().isEmpty()) return 0;
         return userEntity.getFollowers().size();
     }
 
     public Integer getFollowed(Long userId, HttpServletRequest request) {
         UserEntity userEntity = getUserAndWithLoginVerification(userId, request);
-        if (userEntity.getFollowed().isEmpty()) return 0;
         return userEntity.getFollowed().size();
     }
 

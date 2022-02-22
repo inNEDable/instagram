@@ -72,6 +72,9 @@ public class UserEntity {
     @ManyToMany(mappedBy = "likers")
     private Set<SubCommentEntity> likedSubComments;
 
+    @ManyToMany(mappedBy = "likers")
+    private Set<PostEntity> likedPosts;
+
     @ManyToMany
     @JoinTable(
             name = "users_follow_users",

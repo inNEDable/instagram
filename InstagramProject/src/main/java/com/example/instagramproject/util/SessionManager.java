@@ -1,4 +1,4 @@
-package com.example.instagramproject.service;
+package com.example.instagramproject.util;
 
 import com.example.instagramproject.exceptions.UnauthorizedAccessException;
 import org.springframework.stereotype.Component;

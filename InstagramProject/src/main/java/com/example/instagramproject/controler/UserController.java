@@ -91,6 +91,12 @@ public class UserController {
         return new ResponseEntity<>(followedUserDTO, HttpStatus.CREATED);
     }
 
+    @PutMapping("/{followerId}/unfollows/{followedId}")
+    public ResponseEntity<ReturnUserDTO> userUnFollowUser(@PathVariable Long followerId, @PathVariable Long followedId, HttpServletRequest request){
+        ReturnUserDTO followedUserDTO = userService.unFollowsUser(followerId, followedId, request);
+        return new ResponseEntity<>(followedUserDTO, HttpStatus.CREATED);
+    }
+
     @GetMapping("/getFollowers/{userId}")
     public Integer getFollowers (@PathVariable Long userId, HttpServletRequest request){
         return userService.getFollowers(userId, request);

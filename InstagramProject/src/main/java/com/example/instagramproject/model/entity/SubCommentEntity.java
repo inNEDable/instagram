@@ -28,12 +28,12 @@ public class SubCommentEntity {
     @DateTimeFormat(pattern = "yyyy/MM/dd hh:mm:ss")
     private LocalDateTime dateCreated;
 
+    @Column
+    private String text;
+
     @ManyToOne
     @JoinColumn(name="user_id", nullable=false)
     private UserEntity user;
-
-    @Column
-    private String text;
 
     @ManyToOne
     @JoinColumn(name = "parent_comment_id", nullable=false)

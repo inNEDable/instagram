@@ -48,6 +48,13 @@ public class PostEntity {
     @ManyToMany(mappedBy = "posts")
     private Set<TagEntity> tags;
 
+    @ManyToMany()
+    @JoinTable(
+            name = "users_like_posts",
+            joinColumns = @JoinColumn(name = "post_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
+    private Set<UserEntity> likers;
+
 
     /// Methods :
 

@@ -1,5 +1,6 @@
 package com.example.instagramproject.controler;
 
+import com.example.instagramproject.exceptions.InvalidDataException;
 import com.example.instagramproject.model.DTO.RequestPostDTO;
 import com.example.instagramproject.model.DTO.ReturnPostDTO;
 import com.example.instagramproject.model.DTO.ReturnTagDTO;
@@ -24,6 +25,7 @@ import java.util.TreeSet;
 @RequestMapping("api/posts")
 public class PostController {
 
+    public static final int MAX_MEDIA_PER_POST = 10;
     @Autowired
     PostService postService;
 
@@ -36,6 +38,7 @@ public class PostController {
     @PostMapping("/add-media")
     public List<String> addMediaToPost  (@RequestParam Long postId, @RequestParam Long userId, @RequestBody MultipartFile [] multipartFile, HttpServletRequest request){
         List<String> urlsGenerated = new ArrayList<>();
+        if (multipartFile.length > MAX_MEDIA_PER_POST) throw new InvalidDataException("More than 10 media files in request!");
         Arrays.stream(multipartFile)
                 .forEach(file -> urlsGenerated.add(postService.addMediaToPost(userId, postId, file, request)));
         return urlsGenerated;
@@ -85,5 +88,18 @@ public class PostController {
         return new ResponseEntity<>(posts, responseHeaders, HttpStatus.OK);
     }
 
+    @PostMapping("/{userId}/likes/{postId}")
+    public Integer likePost (@PathVariable Long userId, @PathVariable Long postId, HttpServletRequest request){
+        return postService.likePost(userId, postId, request);
+    }
 
+    @PutMapping("/{userId}/unlikes/{postId}")
+    public Integer unLikePost (@PathVariable Long userId, @PathVariable Long postId, HttpServletRequest request){
+        return postService.unLikePost(userId, postId, request);
+    }
+
+    @GetMapping("/like-count/{postId}")
+    public Integer getAllLikesFromPost (@PathVariable Long postId, HttpServletRequest request){
+        return postService.getAllLikesFromPost(postId, request);
+    }
 }

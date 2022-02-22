@@ -8,6 +8,7 @@ import com.example.instagramproject.model.entity.PostEntity;
 import com.example.instagramproject.model.entity.TagEntity;
 import com.example.instagramproject.model.repository.PostRepository;
 import com.example.instagramproject.model.repository.TagRepository;
+import com.example.instagramproject.util.SessionManager;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;

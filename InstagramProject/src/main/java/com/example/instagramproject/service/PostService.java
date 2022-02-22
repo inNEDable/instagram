@@ -10,6 +10,7 @@ import com.example.instagramproject.model.entity.UserEntity;
 import com.example.instagramproject.model.repository.PostMediaRepository;
 import com.example.instagramproject.model.repository.PostRepository;
 import com.example.instagramproject.model.repository.UserRepository;
+import com.example.instagramproject.util.SessionManager;
 import com.example.instagramproject.util.Validator;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FilenameUtils;
@@ -191,5 +192,36 @@ public class PostService {
             }
         }
         return directoryToBeDeleted.delete();
+    }
+
+    public Integer likePost(Long userId, Long postId, HttpServletRequest request) {
+        if (postId == null || userId == null) throw new InvalidDataException("Request data missing!");
+        sessionManager.authorizeSession(null, request.getSession(), request);
+        UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new InvalidDataException("User doesn't exist"));
+        PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new InvalidDataException("Post doesn't exist"));
+
+        if (postEntity.getLikers().contains(userEntity)) throw new InvalidDataException("User already liked this post");
+        postEntity.getLikers().add(userEntity);
+        postRepository.save(postEntity);
+        return postEntity.getLikers().size();
+    }
+
+    public Integer unLikePost(Long userId, Long postId, HttpServletRequest request) {
+        if (postId == null || userId == null) throw new InvalidDataException("Request data missing!");
+        sessionManager.authorizeSession(null, request.getSession(), request);
+        UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new InvalidDataException("User doesn't exist"));
+        PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new InvalidDataException("Post doesn't exist"));
+
+        if (!postEntity.getLikers().contains(userEntity)) throw new InvalidDataException("User didn't like this post");
+        postEntity.getLikers().remove(userEntity);
+        postRepository.save(postEntity);
+        return postEntity.getLikers().size();
+    }
+
+    public Integer getAllLikesFromPost(Long postId, HttpServletRequest request) {
+        if (postId == null) throw new InvalidDataException("Missing request data");
+        sessionManager.authorizeSession(null, request.getSession(), request);
+        PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new InvalidDataException("Post doesn't exist"));
+        return postEntity.getLikers().size();
     }
 }
