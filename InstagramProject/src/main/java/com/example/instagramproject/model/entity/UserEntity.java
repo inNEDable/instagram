@@ -1,6 +1,7 @@
 package com.example.instagramproject.model.entity;
 
 import lombok.*;
+import org.apache.catalina.User;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
@@ -56,7 +57,7 @@ public class UserEntity {
     @Column(name = "is_verified")
     protected boolean isVerified;
 
-    @Column
+    @Column(name = "verification_token")
     private String verificationToken;
 
     @OneToMany(mappedBy= "user", cascade = CascadeType.ALL)
@@ -70,6 +71,16 @@ public class UserEntity {
 
     @ManyToMany(mappedBy = "likers")
     private Set<SubCommentEntity> likedSubComments;
+
+    @ManyToMany
+    @JoinTable(
+            name = "users_follow_users",
+            joinColumns = @JoinColumn(name = "followed_user_id"),
+            inverseJoinColumns = @JoinColumn(name = "follower_user_id"))
+    private Set<UserEntity> followers;
+
+    @ManyToMany(mappedBy= "followers", cascade = CascadeType.ALL)
+    private Set<UserEntity> followed;
 
     public UserEntity(String username, String email, String password, String fullName) {
         this.username = username;

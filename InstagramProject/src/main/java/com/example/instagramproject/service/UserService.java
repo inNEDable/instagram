@@ -43,8 +43,8 @@ public class UserService {
     public ReturnUserDTO logOut(RequestUserDTO userToLogOut, HttpServletRequest request) {
         if (userToLogOut.getId() == null) throw new InvalidDataException("Please provide user ID ");
         if (!userRepository.existsById(userToLogOut.getId())) throw new InvalidDataException("Such user doesn't exist");
-
         sessionManager.authorizeSession(userToLogOut.getId(), request.getSession(), request);
+
         sessionManager.logOut(request.getSession());
 
         return modelMapper.map(userToLogOut, ReturnUserDTO.class);
@@ -67,9 +67,7 @@ public class UserService {
     }
 
     public ReturnUserDTO changePassword(RequestUserDTO requestUserDTO, HttpServletRequest request) {
-        sessionManager.authorizeSession(requestUserDTO.getId(), request.getSession(), request);
-        UserEntity userEntity = userRepository.findById((long) request.getSession().getAttribute(SessionManager.USER_ID))
-                .orElseThrow(() -> new InvalidDataException("Please provide user ID"));
+        UserEntity userEntity = getUserAndWithFullVerification(requestUserDTO.getId(), request);
 
         if (!passwordEncoder.matches(requestUserDTO.getPassword(), userEntity.getPassword())) {
             throw new InvalidDataException("Please provide valid password");
@@ -87,9 +85,7 @@ public class UserService {
     }
 
     public ReturnUserDTO edit(RequestUserDTO requestUserDTO, HttpServletRequest request) {
-        sessionManager.authorizeSession(requestUserDTO.getId(), request.getSession(), request);
-
-        UserEntity user = userRepository.findById(requestUserDTO.getId()).orElseThrow(() -> new InvalidDataException("Please provide user ID"));
+        UserEntity user = getUserAndWithFullVerification(requestUserDTO.getId(), request);
 
         if (requestUserDTO.getUsername() != null && !user.getUsername().equals(requestUserDTO.getUsername())) {
             Validator.validateUsernameExists(userRepository, requestUserDTO.getUsername());
@@ -144,13 +140,8 @@ public class UserService {
         String token = UUID.randomUUID().toString();
         userEntity.setVerificationToken(token);
         userRepository.save(userEntity);
-        String confirmationUrl = "/api/users/registrationConfirm/"+ userEntity.getId()+ "/" + token;
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(userEntity.getEmail());
-        message.setSubject("subject");
-        message.setText("http://localhost:8080" + confirmationUrl);
-        emailSender.send(message);
+        sendVerificationVerificationEmail(userEntity, token);
 
         return ReturnUserDTO.builder()
                 .id(userEntity.getId())
@@ -159,7 +150,6 @@ public class UserService {
                 .email(userEntity.getEmail())
                 .build();
     }
-
     public ReturnUserDTO getById(long id) {
         UserEntity userEntity = userRepository.findById(id).orElseThrow(() -> new InvalidDataException("User with id - " + id + " does not exists."));
         return modelMapper.map(userEntity, ReturnUserDTO.class);
@@ -195,11 +185,8 @@ public class UserService {
     }
 
     public ReturnUserDTO deleteUser(RequestUserDTO userToDelete, HttpServletRequest request) {
+        UserEntity userEntity = getUserAndWithFullVerification(userToDelete.getId(), request);
 
-        if (userToDelete.getId() == null) throw new InvalidDataException("Please provide user ID ");
-        UserEntity userEntity = userRepository.findById(userToDelete.getId()).orElseThrow(() -> new InvalidDataException("No such user found"));
-
-        sessionManager.authorizeSession(userEntity.getId(), request.getSession(), request);
         sessionManager.logOut(request.getSession());
         request.getSession().invalidate();
 
@@ -219,7 +206,18 @@ public class UserService {
         }
     }
 
-    public void forgottenPassword(Long userId) {
+    private void sendVerificationVerificationEmail(UserEntity userEntity, String token){
+        String confirmationUrl = "/api/users/registrationConfirm/"+ userEntity.getId()+ "/" + token;
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(userEntity.getEmail());
+        message.setSubject("Instagram email verification");
+        message.setText("Please click here to verify your email: " +
+                "http://localhost:8080" + confirmationUrl);
+        emailSender.send(message);
+    }
+
+    public void sendForgottenPasswordEmail(Long userId) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new InvalidDataException("Please provide valid email"));
         String newPass = PasswordGenerator.makePassword(20);
@@ -227,8 +225,51 @@ public class UserService {
         userRepository.save(user);
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(user.getEmail());
-        message.setSubject("Имате нова парола. За ваша сигурност при логване я сменете");
-        message.setText("Новата ви парола е " + newPass);
+        message.setSubject("Instagram Password change");
+        message.setText("Your new password is: " + newPass);
         emailSender.send(message);
+    }
+
+    public ReturnUserDTO userFollowsUser(Long followerId, Long followedId, HttpServletRequest request) {
+        if (followerId == null || followedId == null) throw new InvalidDataException("Please provide both users IDs");
+        sessionManager.authorizeSession(followerId, request.getSession(), request);
+
+        UserEntity followerUser = userRepository.findById(followerId).orElseThrow(() -> new InvalidDataException("Follower doesn't exist"));
+        UserEntity followedUser = userRepository.findById(followedId).orElseThrow(() -> new InvalidDataException("Followed doesn't exist"));
+
+        if (followedUser.getFollowers().contains(followerUser))
+            throw new InvalidDataException(followerUser.getUsername() + " already follows " + followedUser.getUsername());
+
+        followedUser.getFollowers().add(followerUser);
+        userRepository.save(followedUser);
+
+        System.out.println(followerUser.getUsername() + " FOLLOWS " + followedUser.getUsername());
+        System.out.println(followedUser.getUsername() + " IS NOW FOLLOWED BY " + followerUser.getUsername());
+
+        return modelMapper.map(followedUser, ReturnUserDTO.class);
+    }
+
+    public Integer getFollowers(Long userId, HttpServletRequest request) {
+        UserEntity userEntity = getUserAndWithLoginVerification(userId, request);
+        if (userEntity.getFollowers().isEmpty()) return 0;
+        return userEntity.getFollowers().size();
+    }
+
+    public Integer getFollowed(Long userId, HttpServletRequest request) {
+        UserEntity userEntity = getUserAndWithLoginVerification(userId, request);
+        if (userEntity.getFollowed().isEmpty()) return 0;
+        return userEntity.getFollowed().size();
+    }
+
+    private UserEntity getUserAndWithLoginVerification(Long userId, HttpServletRequest request){
+        sessionManager.authorizeSession(null, request.getSession(), request);
+        if (userId == null) throw new InvalidDataException("Please provide user ID");
+        return userRepository.findById(userId).orElseThrow(() -> new InvalidDataException("User doesn't exist"));
+    }
+
+    private UserEntity getUserAndWithFullVerification(Long userId, HttpServletRequest request){
+        sessionManager.authorizeSession(userId, request.getSession(), request);
+        if (userId == null) throw new InvalidDataException("Please provide user ID");
+        return userRepository.findById(userId).orElseThrow(() -> new InvalidDataException("User doesn't exist"));
     }
 }

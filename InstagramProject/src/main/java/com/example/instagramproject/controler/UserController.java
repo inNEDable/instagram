@@ -20,15 +20,15 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/forgottenPassword/{userId}")
-    public void forgottenPassword(@PathVariable Long userId){
-        this.userService.forgottenPassword(userId);
+    public void forgottenPassword(@PathVariable Long userId) {
+        this.userService.sendForgottenPasswordEmail(userId);
     }
 
     @SneakyThrows
     @GetMapping("/registrationConfirm/{userId}/{token}")
     public void confirmRegistration(@PathVariable Long userId, @PathVariable String token, HttpServletResponse response, HttpServletRequest request) {
         userService.confirmRegistration(userId, token, request);
-        response.getWriter().println("User successfully");
+        response.getWriter().println("User email successfully confirmed!");
     }
 
     @PutMapping("/logout")
@@ -83,5 +83,21 @@ public class UserController {
     public ResponseEntity<ReturnUserDTO> getByFullName(@PathVariable(name = "fullName") String fullName) {
         ReturnUserDTO returnUserDTO = userService.getByFullName(fullName);
         return new ResponseEntity<>(returnUserDTO, HttpStatus.OK);
+    }
+
+    @PutMapping("/{followerId}/follows/{followedId}")
+    public ResponseEntity<ReturnUserDTO> userFollowUser(@PathVariable Long followerId, @PathVariable Long followedId, HttpServletRequest request){
+        ReturnUserDTO followedUserDTO = userService.userFollowsUser(followerId, followedId, request);
+        return new ResponseEntity<>(followedUserDTO, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/getFollowers/{userId}")
+    public Integer getFollowers (@PathVariable Long userId, HttpServletRequest request){
+        return userService.getFollowers(userId, request);
+    }
+
+    @GetMapping("/getFollowed/{userId}")
+    public Integer getFollowed (@PathVariable Long userId, HttpServletRequest request){
+        return userService.getFollowed(userId, request);
     }
 }
