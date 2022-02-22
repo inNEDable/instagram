@@ -119,6 +119,10 @@ public class UserService {
             Validator.validateRealWebSite(requestUserDTO.getWebsite());
         }
 
+        if(requestUserDTO.getPhoneNumber() != null || !requestUserDTO.getPhoneNumber().isBlank()) {
+            Validator.validatePhoneNumber(requestUserDTO.getPhoneNumber());
+        }
+
 
         UserEntity updatedUserEntity = modelMapper.map(requestUserDTO, UserEntity.class);
 

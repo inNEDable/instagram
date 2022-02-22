@@ -111,7 +111,7 @@ public class CommentService {
         Long userId = (Long) request.getSession().getAttribute(SessionManager.USER_ID);
         sessionManager.authorizeSession(userId, request.getSession(), request);
 
-        List<String> commentEntities = commentRepository.findAllByPostId(postId);
+        List<String> commentEntities = commentRepository.findAllCommentsByPostId(postId);
         if (commentEntities.isEmpty()) throw new InvalidDataException("User doesn't have any posts yet");
 
         return commentEntities;
