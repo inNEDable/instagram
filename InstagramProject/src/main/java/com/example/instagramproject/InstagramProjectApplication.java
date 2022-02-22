@@ -1,6 +1,8 @@
 package com.example.instagramproject;
 
+import com.example.instagramproject.model.entity.UserEntity;
 import com.example.instagramproject.service.PostService;
+import com.example.instagramproject.service.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -19,8 +21,13 @@ public class InstagramProjectApplication {
 
     public static void main(String[] args) {
         File allPostsFolder = new File(PostService.ALL_POSTS_FOLDER);
-        if (!allPostsFolder.exists()) allPostsFolder.mkdir();
-
+        if (!allPostsFolder.exists()) {
+            allPostsFolder.mkdir();
+        }
+        File allUsersProfilePicturesFolder = new File(UserService.ALL_PROFILE_PICTURES_FOLDER);
+        if (!allUsersProfilePicturesFolder.exists()) {
+            allUsersProfilePicturesFolder.mkdir();
+        }
         SpringApplication.run(InstagramProjectApplication.class, args);
 
     }
@@ -42,9 +49,6 @@ public class InstagramProjectApplication {
 
         return mailSender;
     }
-
-
-
 
     @Bean
     public ModelMapper modelMapper() {

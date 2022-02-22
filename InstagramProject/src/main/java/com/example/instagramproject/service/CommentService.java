@@ -9,10 +9,12 @@ import com.example.instagramproject.util.SessionManager;
 import com.example.instagramproject.util.Validator;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class CommentService {
@@ -103,5 +105,15 @@ public class CommentService {
 
     private UserEntity getUserById(Long id) {
         return userRepository.findById(id).orElseThrow(() -> new InvalidDataException("User ID doesn't exist"));
+    }
+
+    public List<String> getAllPostComments(Long postId, HttpServletRequest request) {
+        Long userId = (Long) request.getSession().getAttribute(SessionManager.USER_ID);
+        sessionManager.authorizeSession(userId, request.getSession(), request);
+
+        List<String> commentEntities = commentRepository.findAllByPostId(postId);
+        if (commentEntities.isEmpty()) throw new InvalidDataException("User doesn't have any posts yet");
+
+        return commentEntities;
     }
 }

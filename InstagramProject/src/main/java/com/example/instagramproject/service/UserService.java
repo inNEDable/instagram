@@ -3,19 +3,26 @@ package com.example.instagramproject.service;
 import com.example.instagramproject.exceptions.InvalidDataException;
 import com.example.instagramproject.model.DTO.RequestUserDTO;
 import com.example.instagramproject.model.DTO.ReturnUserDTO;
+import com.example.instagramproject.model.entity.PostMediaEntity;
 import com.example.instagramproject.model.entity.UserEntity;
 import com.example.instagramproject.model.repository.UserRepository;
 import com.example.instagramproject.util.PasswordGenerator;
 import com.example.instagramproject.util.SessionManager;
 import com.example.instagramproject.util.Validator;
+import org.apache.commons.io.FilenameUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.UUID;
 
 @Service
@@ -26,6 +33,8 @@ public class UserService {
     public static final int MAX_USERNAME_LENGTH = 20;
     public static final int MIN_FULL_NAME_LENGTH = 3;
     public static final int MAX_FULL_NAME_LENGTH = 30;
+    public static final String ALL_PROFILE_PICTURES_FOLDER = "allUsersProfilePicture";
+
     @Autowired
     private UserRepository userRepository;
 
@@ -151,6 +160,7 @@ public class UserService {
                 .email(userEntity.getEmail())
                 .build();
     }
+
     public ReturnUserDTO getById(long id) {
         UserEntity userEntity = userRepository.findById(id).orElseThrow(() -> new InvalidDataException("User with id - " + id + " does not exists."));
         return modelMapper.map(userEntity, ReturnUserDTO.class);
@@ -281,5 +291,34 @@ public class UserService {
         sessionManager.authorizeSession(userId, request.getSession(), request);
         if (userId == null) throw new InvalidDataException("Please provide user ID");
         return userRepository.findById(userId).orElseThrow(() -> new InvalidDataException("User doesn't exist"));
+    }
+
+    public String changeProfilePicture(MultipartFile multipartFile, HttpServletRequest request) {
+        Long userId = (Long) request.getSession().getAttribute(SessionManager.USER_ID);
+        UserEntity userEntity = getUserAndWithFullVerification(userId, request);
+
+        String fileName = System.nanoTime() + "."
+                + FilenameUtils.getExtension(multipartFile.getOriginalFilename());
+
+        String currentPostFolder = "profilePicture-" + userId;
+        new File(ALL_PROFILE_PICTURES_FOLDER + File.separator + currentPostFolder).mkdir();
+
+        Path fullPath = Path.of(ALL_PROFILE_PICTURES_FOLDER
+                + File.separator
+                + currentPostFolder
+                + File.separator
+                + fileName);
+
+        try {
+            Files.copy(multipartFile.getInputStream(), fullPath);
+        } catch (IOException e) {
+            throw new InvalidDataException("Invalid data");
+        }
+
+        userEntity.setProfilePicture(fullPath.toString());
+        userRepository.save(userEntity);
+
+        return fileName;
+
     }
 }

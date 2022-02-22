@@ -8,9 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 @RestController
 @RequestMapping("api/users")
@@ -18,6 +20,11 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @PutMapping("/change-picture")
+    public String changeProfilePicture(@RequestBody MultipartFile multipartFile, HttpServletRequest request) {
+        return userService.changeProfilePicture(multipartFile, request);
+    }
 
     @PostMapping("/forgottenPassword/{userId}")
     public void forgottenPassword(@PathVariable Long userId) {
