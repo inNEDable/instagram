@@ -3,13 +3,14 @@ package com.example.instagramproject.controler;
 import com.example.instagramproject.model.DTO.RequestUserDTO;
 import com.example.instagramproject.model.DTO.ReturnUserDTO;
 import com.example.instagramproject.service.UserService;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("api/users")
@@ -17,6 +18,18 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @PostMapping("/forgottenPassword/{userId}")
+    public void forgottenPassword(@PathVariable Long userId){
+        this.userService.forgottenPassword(userId);
+    }
+
+    @SneakyThrows
+    @GetMapping("/registrationConfirm/{userId}/{token}")
+    public void confirmRegistration(@PathVariable Long userId, @PathVariable String token, HttpServletResponse response, HttpServletRequest request) {
+        userService.confirmRegistration(userId, token, request);
+        response.getWriter().println("User successfully");
+    }
 
     @PutMapping("/logout")
     public ResponseEntity<ReturnUserDTO> logOut(@RequestBody RequestUserDTO userToLogout, HttpServletRequest request) {
@@ -55,7 +68,7 @@ public class UserController {
     }
 
     @GetMapping("/find-by-id/{id}")
-    public ResponseEntity<ReturnUserDTO> getById(@PathVariable(name = "id") long id) {
+    public ResponseEntity<ReturnUserDTO> getById(@PathVariable(name = "id") Long id) {
         ReturnUserDTO returnUserDTO = userService.getById(id);
         return new ResponseEntity<>(returnUserDTO, HttpStatus.OK);
     }

@@ -1,7 +1,7 @@
 package com.example.instagramproject.service;
 
 
-import com.example.instagramproject.exceptions.InvalidData;
+import com.example.instagramproject.exceptions.InvalidDataException;
 import com.example.instagramproject.model.DTO.RequestPostDTO;
 import com.example.instagramproject.model.DTO.ReturnPostDTO;
 import com.example.instagramproject.model.entity.PostEntity;
@@ -25,9 +25,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.TreeSet;
 
 
@@ -56,12 +54,12 @@ public class PostService {
     public ReturnPostDTO createPost(RequestPostDTO requestPostDTO, HttpServletRequest request) {
         Validator.validateStringLength(0, MAX_POST_TEXT_LENGTH, requestPostDTO.getText());
         if (requestPostDTO.getText().isBlank()
-                || requestPostDTO.getUserId() == null) throw new InvalidData("Invalid data");
+                || requestPostDTO.getUserId() == null) throw new InvalidDataException("Invalid data");
 
         sessionManager.authorizeSession(requestPostDTO.getUserId(), request.getSession(), request);
 
         UserEntity user = userRepository.findById(requestPostDTO.getUserId())
-                .orElseThrow(() -> new InvalidData("User ID doesn't exist"));
+                .orElseThrow(() -> new InvalidDataException("User ID doesn't exist"));
 
         //TODO: Да помисля тия двете отдолу, дали не могат да се направят с mapper
         PostEntity postEntity = new PostEntity();
@@ -76,7 +74,7 @@ public class PostService {
 
     @SneakyThrows
     public String addMediaToPost(Long userId, Long postId, MultipartFile multipartFile, HttpServletRequest request) {
-        if (userId == null || postId == null || multipartFile.isEmpty() ) throw new InvalidData("Data missing from request");
+        if (userId == null || postId == null || multipartFile.isEmpty() ) throw new InvalidDataException("Data missing from request");
 
         sessionManager.authorizeSession(userId, request.getSession(), request);
         PostEntity postEntity = userManipulatingPostCheck(userId, postId);
@@ -119,7 +117,7 @@ public class PostService {
 
     @SneakyThrows
     public void getPostMedia(Long postId, String requestedFile, HttpServletRequest request, HttpServletResponse response) {
-        if (postId == null || requestedFile == null) throw new InvalidData("Missing request parameters");
+        if (postId == null || requestedFile == null) throw new InvalidDataException("Missing request parameters");
         sessionManager.authorizeSession(null, request.getSession(), request);
 
         String currentPostFolder = "post-" + postId;
@@ -130,7 +128,7 @@ public class PostService {
                             + currentPostFolder
                             + File.separator
                             + requestedFile);
-        if (!mediaToGet.exists()) throw new InvalidData("Picture not found on the server");
+        if (!mediaToGet.exists()) throw new InvalidDataException("Picture not found on the server");
 
         Files.copy(mediaToGet.toPath(), response.getOutputStream());
 
@@ -148,9 +146,9 @@ public class PostService {
     }
 
     public ReturnPostDTO getPostById(Long postId, HttpServletRequest request) {
-        if (postId == null) throw new InvalidData("Please provide Post ID!");
+        if (postId == null) throw new InvalidDataException("Please provide Post ID!");
         sessionManager.authorizeSession(null, request.getSession(), request);
-        PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new InvalidData("Post not found"));
+        PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new InvalidDataException("Post not found"));
         return modelMapper.map(postEntity, ReturnPostDTO.class);
     }
 
@@ -159,7 +157,7 @@ public class PostService {
         sessionManager.authorizeSession(null, request.getSession(), request);
 
         List<PostEntity> postEntities = postRepository.findAllByUserId(userId);
-        if (postEntities.isEmpty()) throw new InvalidData("User doesn't have any posts yet");
+        if (postEntities.isEmpty()) throw new InvalidDataException("User doesn't have any posts yet");
 
         return modelMapper.map(postEntities, new TypeToken<TreeSet<ReturnPostDTO>>() {}.getType());
     }
@@ -168,20 +166,20 @@ public class PostService {
         sessionManager.authorizeSession(null, request.getSession(), request);
 
         List<PostEntity> postEntities1 = postRepository.findAllByTextContaining(t);
-        if (postEntities1.isEmpty()) throw new InvalidData("No posts with provided text are found");
+        if (postEntities1.isEmpty()) throw new InvalidDataException("No posts with provided text are found");
 
         return modelMapper.map(postEntities1, new TypeToken<TreeSet<ReturnPostDTO>>() {}.getType());
     }
 
     private void userExistsCheck(Long userId) {
-        if (userId == null || !userRepository.existsById(userId)) throw new InvalidData("User doesn't exist");
+        if (userId == null || !userRepository.existsById(userId)) throw new InvalidDataException("User doesn't exist");
     }
 
     private PostEntity userManipulatingPostCheck(Long userId, Long postId){
-        PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new InvalidData("Post doesn't exist"));
-        UserEntity user = userRepository.findById(userId).orElseThrow(() -> new InvalidData("User doesn't exist"));
+        PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new InvalidDataException("Post doesn't exist"));
+        UserEntity user = userRepository.findById(userId).orElseThrow(() -> new InvalidDataException("User doesn't exist"));
 
-        if (postEntity.getUser().getId() != userId) throw new InvalidData("User is trying to manipulate foreign post");
+        if (postEntity.getUser().getId() != userId) throw new InvalidDataException("User is trying to manipulate foreign post");
         return postEntity;
     }
 

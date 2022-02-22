@@ -1,6 +1,6 @@
 package com.example.instagramproject.util;
 
-import com.example.instagramproject.exceptions.InvalidData;
+import com.example.instagramproject.exceptions.InvalidDataException;
 import com.example.instagramproject.model.repository.UserRepository;
 
 import java.util.regex.Pattern;
@@ -23,44 +23,44 @@ public class Validator {
 
     public static void validateUsernameExists(UserRepository userRepository, String username) {
         if (userRepository.findUserEntityByUsername(username).isPresent()) {
-            throw new InvalidData("This username isn't available. Please try another");
+            throw new InvalidDataException("This username isn't available. Please try another");
         }
     }
 
     public static void validateEmailExists(UserRepository userRepository, String email) {
         if (userRepository.findUserEntityByEmail(email).isPresent()) {
-            throw new InvalidData("Another account is using " + email);
+            throw new InvalidDataException("Another account is using " + email);
         }
     }
 
     public static void validateRealEmail(String emailAddress) {
         if (!Pattern.compile(EMAIL_REGEX)
                 .matcher(emailAddress)
-                .matches()) throw new InvalidData("Invalid email");
+                .matches()) throw new InvalidDataException("Invalid email");
     }
 
     public static void validateRealWebSite(String website) {
         if (!Pattern.compile(WEBSITE_REGEX)
                 .matcher(website)
-                .matches()) throw new InvalidData("Invalid website!");
+                .matches()) throw new InvalidDataException("Invalid website!");
     }
 
     public static void validateStrongPassword(String website) {
         if (!Pattern.compile(STRONG_PASSWORD_REGEX)
                 .matcher(website)
-                .matches()) throw new InvalidData("Password is not strong enough");
+                .matches()) throw new InvalidDataException("Password is not strong enough");
     }
 
     public static void validateStringLength(Integer min, Integer max, String string) {
         if (min == null) min = 0;
         if (string.length() > max || string.length() < min){
-            throw new InvalidData(string + " is out of acceptable length bounds");
+            throw new InvalidDataException(string + " is out of acceptable length bounds");
         }
 
     }
 
     public static void validateGender(Character gender) {
         if (gender == 'f' || gender == 'm') return;
-        throw new InvalidData("Invalid gender");
+        throw new InvalidDataException("Invalid gender");
     }
 }

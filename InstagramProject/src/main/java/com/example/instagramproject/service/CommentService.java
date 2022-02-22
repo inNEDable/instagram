@@ -1,6 +1,6 @@
 package com.example.instagramproject.service;
 
-import com.example.instagramproject.exceptions.InvalidData;
+import com.example.instagramproject.exceptions.InvalidDataException;
 import com.example.instagramproject.model.DTO.RequestCommentPostDTO;
 import com.example.instagramproject.model.DTO.ReturnCommentDTO;
 import com.example.instagramproject.model.entity.*;
@@ -35,14 +35,14 @@ public class CommentService {
     public ReturnCommentDTO createCommentPost(RequestCommentPostDTO createCommentPostDTO, HttpServletRequest request) {
         Validator.validateStringLength(0, MAX_COMMENT_LENGTH, createCommentPostDTO.getText());
         if (createCommentPostDTO.getText().isBlank()
-                || createCommentPostDTO.getUserId() == null) throw new InvalidData("Invalid data");
+                || createCommentPostDTO.getUserId() == null) throw new InvalidDataException("Invalid data");
 
         sessionManager.authorizeSession(createCommentPostDTO.getUserId(), request.getSession(), request);
 
         UserEntity user = userRepository.findById(createCommentPostDTO.getUserId())
-                .orElseThrow(() -> new InvalidData("User ID doesn't exist"));
+                .orElseThrow(() -> new InvalidDataException("User ID doesn't exist"));
         PostEntity post = postRepository.findById(createCommentPostDTO.getPostId())
-                .orElseThrow(() -> new InvalidData("Post ID doesn't exist"));
+                .orElseThrow(() -> new InvalidDataException("Post ID doesn't exist"));
 
         CommentEntity comment = new CommentEntity();
         comment.setDateCreated(LocalDateTime.now());
@@ -55,11 +55,11 @@ public class CommentService {
     }
 
     public ReturnCommentDTO deleteComment(RequestCommentPostDTO commentToDelete, HttpServletRequest request) {
-        if (commentToDelete.getId() == null) throw new InvalidData("Invalid date");
+        if (commentToDelete.getId() == null) throw new InvalidDataException("Invalid date");
 
         sessionManager.authorizeSession(commentToDelete.getUserId(), request.getSession(), request);
         CommentEntity comment = commentRepository.findById(commentToDelete.getId())
-                .orElseThrow(() -> new InvalidData("Comment ID doesn't exist"));
+                .orElseThrow(() -> new InvalidDataException("Comment ID doesn't exist"));
         commentRepository.deleteById(commentToDelete.getId());
 
         return modelMapper.map(comment, ReturnCommentDTO.class);
@@ -70,7 +70,7 @@ public class CommentService {
         CommentEntity comment = getCommentById(commentId);
         UserEntity user = getUserById((long)request.getSession().getAttribute(SessionManager.USER_ID));
         if (user.getLikedComments().contains(comment)) {
-            throw new InvalidData("User already liked this comment");
+            throw new InvalidDataException("User already liked this comment");
         }
         comment.getLikers().add(user);
         commentRepository.save(comment);
@@ -83,7 +83,7 @@ public class CommentService {
         CommentEntity comment = getCommentById(commentId);
         UserEntity user = getUserById((long)request.getSession().getAttribute(SessionManager.USER_ID));
         if (!user.getLikedComments().contains(comment)) {
-            throw new InvalidData("User did not like this comment");
+            throw new InvalidDataException("User did not like this comment");
         }
         comment.getLikers().remove(user);
         commentRepository.save(comment);
@@ -97,10 +97,10 @@ public class CommentService {
     }
 
     private CommentEntity getCommentById(Long id) {
-        return commentRepository.findById(id).orElseThrow(() -> new InvalidData("Comment ID doesn't exist"));
+        return commentRepository.findById(id).orElseThrow(() -> new InvalidDataException("Comment ID doesn't exist"));
     }
 
     private UserEntity getUserById(Long id) {
-        return userRepository.findById(id).orElseThrow(() -> new InvalidData("User ID doesn't exist"));
+        return userRepository.findById(id).orElseThrow(() -> new InvalidDataException("User ID doesn't exist"));
     }
 }

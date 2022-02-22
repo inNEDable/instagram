@@ -1,6 +1,6 @@
 package com.example.instagramproject.service;
 
-import com.example.instagramproject.exceptions.InvalidData;
+import com.example.instagramproject.exceptions.InvalidDataException;
 import com.example.instagramproject.model.DTO.RequestSubCommentDTO;
 import com.example.instagramproject.model.DTO.ReturnCommentDTO;
 import com.example.instagramproject.model.entity.CommentEntity;
@@ -39,14 +39,14 @@ public class SubCommentService {
     public ReturnCommentDTO crateSubComment(RequestSubCommentDTO createSubCommentDTO, HttpServletRequest request) {
         Validator.validateStringLength(0, MAX_SUB_COMMENT_LENGTH, createSubCommentDTO.getText());
         if (createSubCommentDTO.getText().isBlank()
-                || createSubCommentDTO.getUserId() == null) throw new InvalidData("Invalid data");
+                || createSubCommentDTO.getUserId() == null) throw new InvalidDataException("Invalid data");
 
         sessionManager.authorizeSession(createSubCommentDTO.getUserId(), request.getSession(), request);
 
         UserEntity user = userRepository.findById(createSubCommentDTO.getUserId())
-                .orElseThrow(() -> new InvalidData("User ID doesn't exist"));
+                .orElseThrow(() -> new InvalidDataException("User ID doesn't exist"));
         CommentEntity comment = commentRepository.findById(createSubCommentDTO.getParentCommentId())
-                .orElseThrow(() -> new InvalidData("Comment ID doesn't exist"));
+                .orElseThrow(() -> new InvalidDataException("Comment ID doesn't exist"));
         SubCommentEntity subComment = new SubCommentEntity();
         subComment.setDateCreated(LocalDateTime.now());
         subComment.setUser(user);
@@ -58,10 +58,10 @@ public class SubCommentService {
     }
 
     public ReturnCommentDTO deleteSubComment(RequestSubCommentDTO createSubCommentDTO, HttpServletRequest request) {
-        if (createSubCommentDTO.getId() == null) throw new InvalidData("Invalid date");
+        if (createSubCommentDTO.getId() == null) throw new InvalidDataException("Invalid date");
 
         sessionManager.authorizeSession(createSubCommentDTO.getUserId(), request.getSession(), request);
-        SubCommentEntity subComment = subCommentRepository.findById(createSubCommentDTO.getId()).orElseThrow(() -> new InvalidData("Comment ID doesn't exist"));
+        SubCommentEntity subComment = subCommentRepository.findById(createSubCommentDTO.getId()).orElseThrow(() -> new InvalidDataException("Comment ID doesn't exist"));
         subCommentRepository.deleteById(subComment.getId());
 
         return modelMapper.map(subComment, ReturnCommentDTO.class);
@@ -72,7 +72,7 @@ public class SubCommentService {
         SubCommentEntity subComment = getSubCommentById(subCommentId);
         UserEntity user = getUserById((long)request.getSession().getAttribute(SessionManager.USER_ID));
         if (user.getLikedSubComments().contains(subComment)) {
-            throw new InvalidData("User already liked this comment");
+            throw new InvalidDataException("User already liked this comment");
         }
         subComment.getLikers().add(user);
         subCommentRepository.save(subComment);
@@ -85,7 +85,7 @@ public class SubCommentService {
         SubCommentEntity subComment = getSubCommentById(subCommentId);
         UserEntity user = getUserById((long)request.getSession().getAttribute(SessionManager.USER_ID));
         if (!user.getLikedSubComments().contains(subComment)) {
-            throw new InvalidData("User did not like this comment");
+            throw new InvalidDataException("User did not like this comment");
         }
         subComment.getLikers().remove(user);
         subCommentRepository.save(subComment);
@@ -99,11 +99,11 @@ public class SubCommentService {
     }
 
     private SubCommentEntity getSubCommentById(Long id) {
-        return subCommentRepository.findById(id).orElseThrow(() -> new InvalidData("Comment ID doesn't exist"));
+        return subCommentRepository.findById(id).orElseThrow(() -> new InvalidDataException("Comment ID doesn't exist"));
     }
 
     private UserEntity getUserById(Long id) {
-        return userRepository.findById(id).orElseThrow(() -> new InvalidData("User ID doesn't exist"));
+        return userRepository.findById(id).orElseThrow(() -> new InvalidDataException("User ID doesn't exist"));
     }
 
 

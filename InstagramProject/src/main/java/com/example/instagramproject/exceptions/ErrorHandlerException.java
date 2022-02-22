@@ -8,10 +8,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 @ControllerAdvice
-public class ErrorHandler extends ResponseEntityExceptionHandler {
+public class ErrorHandlerException extends ResponseEntityExceptionHandler {
 
 
-    @ExceptionHandler(value = {InvalidData.class})
+    @ExceptionHandler(value = {InvalidDataException.class})
     protected ResponseEntity<ErrorDTO> handleConflict(RuntimeException ex) {
         ErrorDTO errorDTO = new ErrorDTO();
         errorDTO.setMessage("Invalid data: " + ex.getMessage());
@@ -19,7 +19,7 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(errorDTO,HttpStatus.NOT_ACCEPTABLE );
     }
 
-    @ExceptionHandler(value = {UnauthorizedAccess.class})
+    @ExceptionHandler(value = {UnauthorizedAccessException.class})
     protected ResponseEntity<ErrorDTO> unauthorizedAccess (RuntimeException ex) {
         ErrorDTO errorDTO = new ErrorDTO();
         errorDTO.setMessage("Unauthorized access : " + ex.getMessage());
