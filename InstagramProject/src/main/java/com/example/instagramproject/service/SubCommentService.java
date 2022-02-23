@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class SubCommentService {
@@ -108,4 +109,13 @@ public class SubCommentService {
     }
 
 
+    public List<String> getAllSubComments(Long commentId, HttpServletRequest request) {
+        Long userId = (Long) request.getSession().getAttribute(SessionManager.USER_ID);
+        sessionManager.authorizeSession(userId, request.getSession(), request);
+
+        List<String> commentEntities = subCommentRepository.findAllCommentByCommentId(commentId);
+        if (commentEntities.isEmpty()) throw new InvalidDataException("Comment doesn't have any comments yet");
+
+        return commentEntities;
+    }
 }

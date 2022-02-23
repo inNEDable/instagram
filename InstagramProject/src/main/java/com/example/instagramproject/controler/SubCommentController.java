@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 @RestController
 @RequestMapping("api/sub-comments")
@@ -42,5 +43,10 @@ public class SubCommentController {
     @GetMapping("/get-all-likes-sub-comment/{subCommentId}")
     public Long getAllLikesCommentPost(@PathVariable(name = "subCommentId") Long subCommentId, HttpServletRequest request) {
         return subCommentService.getLikeCount(subCommentId, request);
+    }
+
+    @GetMapping("/all-sub-comments/{commentId}")
+    public List<String> getAllSubComments(@PathVariable Long commentId, HttpServletRequest request) {
+        return subCommentService.getAllSubComments(commentId, request);
     }
 }
