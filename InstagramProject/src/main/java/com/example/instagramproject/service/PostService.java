@@ -10,6 +10,7 @@ import com.example.instagramproject.model.entity.UserEntity;
 import com.example.instagramproject.model.repository.PostMediaRepository;
 import com.example.instagramproject.model.repository.PostRepository;
 import com.example.instagramproject.model.repository.UserRepository;
+import com.example.instagramproject.util.FileManager;
 import com.example.instagramproject.util.SessionManager;
 import com.example.instagramproject.util.Validator;
 import lombok.SneakyThrows;
@@ -114,7 +115,7 @@ public class PostService {
                 ALL_POSTS_FOLDER
                 + File.separator
                 + currentPostFolder);
-        deleteDirectory(mediaOfDeletedPost);
+        FileManager.deleteDirectory(mediaOfDeletedPost);
     }
 
     @SneakyThrows
@@ -133,7 +134,6 @@ public class PostService {
         if (!mediaToGet.exists()) throw new InvalidDataException("Picture not found on the server");
 
         Files.copy(mediaToGet.toPath(), response.getOutputStream());
-
     }
 
     public ReturnPostDTO editPostText(RequestPostDTO requestPostDTO, HttpServletRequest request) {
@@ -183,16 +183,6 @@ public class PostService {
 
         if (postEntity.getUser().getId() != userId) throw new InvalidDataException("User is trying to manipulate foreign post");
         return postEntity;
-    }
-
-    private boolean deleteDirectory(File directoryToBeDeleted) {
-        File[] allContents = directoryToBeDeleted.listFiles();
-        if (allContents != null) {
-            for (File file : allContents) {
-                deleteDirectory(file);
-            }
-        }
-        return directoryToBeDeleted.delete();
     }
 
     public Integer likePost(Long userId, Long postId, HttpServletRequest request) {

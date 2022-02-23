@@ -104,11 +104,6 @@ public class SubCommentService {
         return subCommentRepository.findById(id).orElseThrow(() -> new InvalidDataException("Comment ID doesn't exist"));
     }
 
-    private UserEntity getUserById(Long id) {
-        return userRepository.findById(id).orElseThrow(() -> new InvalidDataException("User ID doesn't exist"));
-    }
-
-
     public List<String> getAllSubComments(Long commentId, HttpServletRequest request) {
         Long userId = (Long) request.getSession().getAttribute(SessionManager.USER_ID);
         sessionManager.authorizeSession(userId, request.getSession(), request);
@@ -117,5 +112,9 @@ public class SubCommentService {
         if (commentEntities.isEmpty()) throw new InvalidDataException("Comment doesn't have any comments yet");
 
         return commentEntities;
+    }
+
+    private UserEntity getUserById(Long id) {
+        return userRepository.findById(id).orElseThrow(() -> new InvalidDataException("User ID doesn't exist"));
     }
 }

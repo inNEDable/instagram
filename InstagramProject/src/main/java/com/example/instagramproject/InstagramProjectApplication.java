@@ -1,7 +1,7 @@
 package com.example.instagramproject;
 
-import com.example.instagramproject.model.entity.UserEntity;
 import com.example.instagramproject.service.PostService;
+import com.example.instagramproject.service.StoryService;
 import com.example.instagramproject.service.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.SpringApplication;
@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -17,6 +18,7 @@ import java.util.Properties;
 
 
 @SpringBootApplication
+@EnableScheduling
 public class InstagramProjectApplication {
 
     public static void main(String[] args) {
@@ -27,6 +29,10 @@ public class InstagramProjectApplication {
         File allUsersProfilePicturesFolder = new File(UserService.ALL_PROFILE_PICTURES_FOLDER);
         if (!allUsersProfilePicturesFolder.exists()) {
             allUsersProfilePicturesFolder.mkdir();
+        }
+        File allUsersStory = new File(StoryService.ALL_STORIES_FOLDER);
+        if (!allUsersStory.exists()) {
+            allUsersStory.mkdir();
         }
         SpringApplication.run(InstagramProjectApplication.class, args);
 
