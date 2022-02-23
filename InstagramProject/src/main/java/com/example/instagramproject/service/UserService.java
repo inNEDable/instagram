@@ -3,7 +3,6 @@ package com.example.instagramproject.service;
 import com.example.instagramproject.exceptions.InvalidDataException;
 import com.example.instagramproject.model.DTO.RequestUserDTO;
 import com.example.instagramproject.model.DTO.ReturnUserDTO;
-import com.example.instagramproject.model.entity.PostMediaEntity;
 import com.example.instagramproject.model.entity.UserEntity;
 import com.example.instagramproject.model.repository.UserRepository;
 import com.example.instagramproject.util.PasswordGenerator;
@@ -51,7 +50,7 @@ public class UserService {
     private ModelMapper modelMapper;
 
     public ReturnUserDTO logOut(RequestUserDTO userToLogOut, HttpServletRequest request) {
-        if (userToLogOut.getId() == null) throw new InvalidDataException("Please provide user ID ");
+        Validator.nullChecker(userToLogOut.getId());
         if (!userRepository.existsById(userToLogOut.getId())) throw new InvalidDataException("Such user doesn't exist");
         sessionManager.authorizeSession(userToLogOut.getId(), request.getSession(), request);
 
@@ -66,7 +65,7 @@ public class UserService {
         String email = userToLogin.getEmail();
         String password = userToLogin.getPassword();
         UserEntity userEntity;
-        if (password == null) throw new InvalidDataException("Password required");
+        Validator.nullChecker(password);
         if (username == null && email == null) throw new InvalidDataException("Username OR Email needed for login!");
         if (username == null) userEntity = loginWithEmail(email, password);
         else userEntity = loginWithUsername(username, password);
@@ -77,7 +76,8 @@ public class UserService {
     }
 
     public ReturnUserDTO changePassword(RequestUserDTO requestUserDTO, HttpServletRequest request) {
-        UserEntity userEntity = getUserAndWithFullVerification(requestUserDTO.getId(), request);
+        UserEntity userEntity = Validator.getEntityWithSessionValidation(true, requestUserDTO.getId(), userRepository , request, sessionManager);
+        Validator.nullChecker(requestUserDTO.getPassword(), requestUserDTO.getNewPassword());
 
         if (!passwordEncoder.matches(requestUserDTO.getPassword(), userEntity.getPassword())) {
             throw new InvalidDataException("Please provide valid password");
@@ -95,7 +95,7 @@ public class UserService {
     }
 
     public ReturnUserDTO edit(RequestUserDTO requestUserDTO, HttpServletRequest request) {
-        UserEntity user = getUserAndWithFullVerification(requestUserDTO.getId(), request);
+        UserEntity user = Validator.getEntityWithSessionValidation(true, requestUserDTO.getId(), userRepository , request, sessionManager);
 
         if (requestUserDTO.getUsername() != null && !user.getUsername().equals(requestUserDTO.getUsername())) {
             Validator.validateUsernameExists(userRepository, requestUserDTO.getUsername());
@@ -134,17 +134,12 @@ public class UserService {
 
     public ReturnUserDTO registerUser(RequestUserDTO requestUserDTO, HttpServletRequest request) {
         if (sessionManager.isLogged(request.getSession())) throw new InvalidDataException("Cant Register while logged");
-        String username = requestUserDTO.getUsername();
-        String email = requestUserDTO.getEmail();
-        String password = requestUserDTO.getPassword();
-        String confirmPassword = requestUserDTO.getConfirmPassword();
 
-        if (username.isBlank()) throw new InvalidDataException("Username can't be blank!");
-        Validator.validateUsernameExists(userRepository, username);
-        if (!password.equals(confirmPassword)) throw new InvalidDataException("Passwords don't match");
-        Validator.validateRealEmail(email);
-        Validator.validateStrongPassword(requestUserDTO.getPassword());
+        Validator.nullChecker(requestUserDTO.getEmail(), requestUserDTO.getUsername(), requestUserDTO.getPassword(), requestUserDTO.getFullName(), requestUserDTO.getConfirmPassword());
+        Validator.validateUsernameExists(userRepository, requestUserDTO.getUsername());
+        Validator.validateRealEmail(requestUserDTO.getEmail());
         Validator.validateEmailExists(userRepository, requestUserDTO.getEmail());
+        Validator.validateStrongPassword(requestUserDTO.getPassword());
         Validator.validateStringLength(MIN_USERNAME_LENGTH, MAX_USERNAME_LENGTH, requestUserDTO.getUsername());
         Validator.validateStringLength(MIN_FULL_NAME_LENGTH, MAX_FULL_NAME_LENGTH, requestUserDTO.getFullName());
 
@@ -157,50 +152,32 @@ public class UserService {
 
         sendVerificationVerificationEmail(userEntity, token);
 
-        return ReturnUserDTO.builder()
-                .id(userEntity.getId())
-                .username(userEntity.getUsername())
-                .fullName(userEntity.getFullName())
-                .email(userEntity.getEmail())
-                .build();
+        return modelMapper.map(userEntity, ReturnUserDTO.class);
     }
 
-    public ReturnUserDTO getById(long id) {
-        UserEntity userEntity = userRepository.findById(id).orElseThrow(() -> new InvalidDataException("User with id - " + id + " does not exists."));
+    public ReturnUserDTO getById(long id, HttpServletRequest request) {
+        // LOGIN ONLY
+        UserEntity userEntity = Validator.getEntityWithSessionValidation(false, id, userRepository, request, sessionManager);
         return modelMapper.map(userEntity, ReturnUserDTO.class);
     }
 
     public ReturnUserDTO getByUsername(String username, HttpServletRequest request) {
         Validator.validateStringLength(0, MAX_USERNAME_LENGTH, username);
         sessionManager.authorizeSession(null, request.getSession(), request);
-        UserEntity userEntity = userRepository.findUserEntityByUsernameContaining(username).orElseThrow(() -> new InvalidDataException("Username '" + username + "' does not exists."));
+        UserEntity userEntity = userRepository.findUserEntityByUsernameContaining(username)
+                .orElseThrow(() -> new InvalidDataException("Username '" + username + "' does not exists."));
         return modelMapper.map(userEntity, ReturnUserDTO.class);
     }
 
     public ReturnUserDTO getByFullName(String fullName) {
         Validator.validateStringLength(0, MAX_FULL_NAME_LENGTH, fullName);
-        UserEntity userEntity = userRepository.findUserEntityByFullNameContaining(fullName).orElseThrow(() -> new InvalidDataException("User with full name - [" + fullName + "] does not exists."));
+        UserEntity userEntity = userRepository.findUserEntityByFullNameContaining(fullName)
+                .orElseThrow(() -> new InvalidDataException("User with full name - [" + fullName + "] does not exists."));
         return modelMapper.map(userEntity, ReturnUserDTO.class);
     }
 
-    private UserEntity loginWithEmail(String email, String password) {
-        UserEntity userEntity = userRepository.findUserEntityByEmail(email).orElseThrow(() -> new InvalidDataException("Invalid email"));
-        boolean passwordMatches = passwordEncoder.matches(password, userEntity.getPassword());
-        if (!passwordMatches) throw new InvalidDataException("Invalid password");
-
-        return userEntity;
-    }
-
-    private UserEntity loginWithUsername(String username, String password) {
-        UserEntity userEntity = userRepository.findUserEntityByUsernameContaining(username).orElseThrow(() -> new InvalidDataException("Invalid username"));
-        boolean passwordMatches = passwordEncoder.matches(password, userEntity.getPassword());
-        if (!passwordMatches) throw new InvalidDataException("Invalid password");
-
-        return userEntity;
-    }
-
     public ReturnUserDTO deleteUser(RequestUserDTO userToDelete, HttpServletRequest request) {
-        UserEntity userEntity = getUserAndWithFullVerification(userToDelete.getId(), request);
+        UserEntity userEntity = Validator.getEntityWithSessionValidation(true, userToDelete.getId(), userRepository, request, sessionManager);
 
         sessionManager.logOut(request.getSession());
         request.getSession().invalidate();
@@ -221,17 +198,6 @@ public class UserService {
         }
     }
 
-    private void sendVerificationVerificationEmail(UserEntity userEntity, String token){
-        String confirmationUrl = "/api/users/registrationConfirm/"+ userEntity.getId()+ "/" + token;
-
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(userEntity.getEmail());
-        message.setSubject("Instagram email verification");
-        message.setText("Please click here to verify your email: " +
-                "http://localhost:8080" + confirmationUrl);
-        emailSender.send(message);
-    }
-
     public void sendForgottenPasswordEmail(Long userId) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new InvalidDataException("Please provide valid email"));
@@ -248,7 +214,7 @@ public class UserService {
     public ReturnUserDTO userFollowsUser(Long followerId, Long followedId, HttpServletRequest request) {
         if (followerId == null || followedId == null) throw new InvalidDataException("Please provide both users IDs");
 
-        UserEntity followerUser = getUserAndWithFullVerification(followerId, request);
+        UserEntity followerUser = Validator.getEntityWithSessionValidation(true, followerId, userRepository, request, sessionManager);
         UserEntity followedUser = userRepository.findById(followedId).orElseThrow(() -> new InvalidDataException("Followed doesn't exist"));
 
         if (followedUser.getFollowers().contains(followerUser))
@@ -263,7 +229,7 @@ public class UserService {
     public ReturnUserDTO unFollowsUser(Long followerId, Long followedId, HttpServletRequest request) {
         if (followerId == null || followedId == null) throw new InvalidDataException("Please provide both users IDs");
 
-        UserEntity followerUser = getUserAndWithFullVerification(followerId, request);
+        UserEntity followerUser = Validator.getEntityWithSessionValidation(true, followerId, userRepository, request, sessionManager);
         UserEntity followedUser = userRepository.findById(followedId).orElseThrow(() -> new InvalidDataException("Followed doesn't exist"));
 
         if (!followedUser.getFollowers().contains(followerUser))
@@ -276,30 +242,20 @@ public class UserService {
     }
 
     public Integer getFollowers(Long userId, HttpServletRequest request) {
-        UserEntity userEntity = getUserAndWithLoginVerification(userId, request);
+        // LOGIN ONLY
+        UserEntity userEntity = Validator.getEntityWithSessionValidation(false, userId, userRepository, request, sessionManager);
         return userEntity.getFollowers().size();
     }
 
     public Integer getFollowed(Long userId, HttpServletRequest request) {
-        UserEntity userEntity = getUserAndWithLoginVerification(userId, request);
+        // LOGIN only
+        UserEntity userEntity = Validator.getEntityWithSessionValidation(false, userId, userRepository,  request, sessionManager);
         return userEntity.getFollowed().size();
-    }
-
-    private UserEntity getUserAndWithLoginVerification(Long userId, HttpServletRequest request){
-        sessionManager.authorizeSession(null, request.getSession(), request);
-        if (userId == null) throw new InvalidDataException("Please provide user ID");
-        return userRepository.findById(userId).orElseThrow(() -> new InvalidDataException("User doesn't exist"));
-    }
-
-    private UserEntity getUserAndWithFullVerification(Long userId, HttpServletRequest request){
-        sessionManager.authorizeSession(userId, request.getSession(), request);
-        if (userId == null) throw new InvalidDataException("Please provide user ID");
-        return userRepository.findById(userId).orElseThrow(() -> new InvalidDataException("User doesn't exist"));
     }
 
     public String changeProfilePicture(MultipartFile multipartFile, HttpServletRequest request) {
         Long userId = (Long) request.getSession().getAttribute(SessionManager.USER_ID);
-        UserEntity userEntity = getUserAndWithFullVerification(userId, request);
+        UserEntity userEntity = Validator.getEntityWithSessionValidation(true, userId, userRepository, request, sessionManager);
 
         String fileName = System.nanoTime() + "."
                 + FilenameUtils.getExtension(multipartFile.getOriginalFilename());
@@ -324,5 +280,34 @@ public class UserService {
 
         return fileName;
 
+    }
+
+    /// PRIVATE METHODS:
+
+    private UserEntity loginWithEmail(String email, String password) {
+        UserEntity userEntity = userRepository.findUserEntityByEmail(email).orElseThrow(() -> new InvalidDataException("Invalid email"));
+        boolean passwordMatches = passwordEncoder.matches(password, userEntity.getPassword());
+        if (!passwordMatches) throw new InvalidDataException("Invalid password");
+
+        return userEntity;
+    }
+
+    private UserEntity loginWithUsername(String username, String password) {
+        UserEntity userEntity = userRepository.findUserEntityByUsernameContaining(username).orElseThrow(() -> new InvalidDataException("Invalid username"));
+        boolean passwordMatches = passwordEncoder.matches(password, userEntity.getPassword());
+        if (!passwordMatches) throw new InvalidDataException("Invalid password");
+
+        return userEntity;
+    }
+
+    private void sendVerificationVerificationEmail(UserEntity userEntity, String token){
+        String confirmationUrl = "/api/users/registrationConfirm/"+ userEntity.getId()+ "/" + token;
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(userEntity.getEmail());
+        message.setSubject("Instagram email verification");
+        message.setText("Please click here to verify your email: " +
+                "http://localhost:8080" + confirmationUrl);
+        emailSender.send(message);
     }
 }

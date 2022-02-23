@@ -75,8 +75,8 @@ public class UserController {
     }
 
     @GetMapping("/find-by-id/{id}")
-    public ResponseEntity<ReturnUserDTO> getById(@PathVariable(name = "id") Long id) {
-        ReturnUserDTO returnUserDTO = userService.getById(id);
+    public ResponseEntity<ReturnUserDTO> getById(@PathVariable(name = "id") Long id, HttpServletRequest request) {
+        ReturnUserDTO returnUserDTO = userService.getById(id, request);
         return new ResponseEntity<>(returnUserDTO, HttpStatus.OK);
     }
 

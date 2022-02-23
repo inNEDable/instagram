@@ -2,7 +2,9 @@ package com.example.instagramproject.util;
 
 import com.example.instagramproject.exceptions.InvalidDataException;
 import com.example.instagramproject.model.repository.UserRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.regex.Pattern;
 
 public class Validator {
@@ -11,6 +13,7 @@ public class Validator {
     private static final String WEBSITE_REGEX = "^((https?|ftp|smtp):\\/\\/)?(www.)?[a-z0-9]+\\.[a-z]+(\\/[a-zA-Z0-9#]+\\/?)*$";
     private static final String STRONG_PASSWORD_REGEX = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$";
     private static final String PHONE_REGEX_ALL_COUNTRY = "^(\\+\\d{1,3}( )?)?((\\(\\d{1,3}\\))|\\d{1,3})[- .]?\\d{3,4}[- .]?\\d{4}$";
+
 
     /*
     ^                 # start-of-string
@@ -55,8 +58,8 @@ public class Validator {
 
     public static void validateStringLength(Integer min, Integer max, String string) {
         if (min == null) min = 0;
-        if (string.length() > max || string.length() < min){
-            throw new InvalidDataException(string + " is out of acceptable length bounds");
+        if (string.length() > max || string.length() < min) {
+            throw new InvalidDataException("A field is out of acceptable length bounds");
         }
 
     }
@@ -70,5 +73,27 @@ public class Validator {
         if (!Pattern.compile(PHONE_REGEX_ALL_COUNTRY)
                 .matcher(phoneNumber)
                 .matches()) throw new InvalidDataException("Invalid phone number");
+    }
+
+    public static void nullChecker(Object... objects) {
+        for (Object o : objects) {
+            if (o == null) {
+                throw new InvalidDataException("Missing request parameter!");
+            }
+        }
+    }
+
+    public static <EntityType> EntityType getEntityWithSessionValidation(
+            boolean fullVerification,
+            Long id,
+            JpaRepository<EntityType, Long> repository,
+            HttpServletRequest request,
+            SessionManager sessionManager
+    ) {
+        if (id == null) throw new InvalidDataException("Please provide entity ID");
+        EntityType entity = repository.findById(id).orElseThrow(() -> new InvalidDataException("Entity doesn't exist"));
+        if (!fullVerification) id = null;
+        sessionManager.authorizeSession(id, request.getSession(), request);
+        return entity;
     }
 }
