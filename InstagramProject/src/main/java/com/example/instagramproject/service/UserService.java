@@ -2,6 +2,7 @@ package com.example.instagramproject.service;
 
 import com.example.instagramproject.exceptions.InvalidDataException;
 import com.example.instagramproject.model.DTO.RequestUserDTO;
+import com.example.instagramproject.model.DTO.ReturnPostDTO;
 import com.example.instagramproject.model.DTO.ReturnUserDTO;
 import com.example.instagramproject.model.entity.UserEntity;
 import com.example.instagramproject.model.repository.UserRepository;
@@ -10,6 +11,7 @@ import com.example.instagramproject.util.SessionManager;
 import com.example.instagramproject.util.Validator;
 import org.apache.commons.io.FilenameUtils;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -22,6 +24,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.TreeSet;
 import java.util.UUID;
 
 @Service
@@ -76,8 +80,8 @@ public class UserService {
     }
 
     public ReturnUserDTO changePassword(RequestUserDTO requestUserDTO, HttpServletRequest request) {
-        UserEntity userEntity = Validator.getEntity(requestUserDTO.getId(), userRepository);
         sessionManager.authorizeSession(requestUserDTO.getId(), request.getSession(), request);
+        UserEntity userEntity = Validator.getEntity(requestUserDTO.getId(), userRepository);
         Validator.nullChecker(requestUserDTO.getPassword(), requestUserDTO.getNewPassword());
 
         if (!passwordEncoder.matches(requestUserDTO.getPassword(), userEntity.getPassword())) {
@@ -96,34 +100,34 @@ public class UserService {
     }
 
     public ReturnUserDTO edit(RequestUserDTO requestUserDTO, HttpServletRequest request) {
-        UserEntity user = Validator.getEntity(requestUserDTO.getId(), userRepository);
         sessionManager.authorizeSession(requestUserDTO.getId(), request.getSession(), request);
-
+        UserEntity user = Validator.getEntity(requestUserDTO.getId(), userRepository);
 
         if (requestUserDTO.getUsername() != null && !user.getUsername().equals(requestUserDTO.getUsername())) {
             Validator.validateUsernameExists(userRepository, requestUserDTO.getUsername());
-            Validator.validateStringLength(MIN_USERNAME_LENGTH, MAX_USERNAME_LENGTH, requestUserDTO.getUsername() );
+            Validator.validateStringLength(MIN_USERNAME_LENGTH, MAX_USERNAME_LENGTH, requestUserDTO.getUsername());
         }
 
-        if (requestUserDTO.getFullName() != null && !requestUserDTO.getFullName().equals(user.getFullName())){
+        if (requestUserDTO.getFullName() != null && !requestUserDTO.getFullName().equals(user.getFullName())) {
             Validator.validateStringLength(MIN_FULL_NAME_LENGTH, MAX_FULL_NAME_LENGTH, requestUserDTO.getFullName());
         }
 
         if (requestUserDTO.getEmail() != null && !user.getEmail().equals(requestUserDTO.getEmail())) {
-            Validator.validateEmailExists(userRepository, requestUserDTO.getEmail());
             Validator.validateRealEmail(requestUserDTO.getEmail());
+            Validator.validateEmailExists(userRepository, requestUserDTO.getEmail());
         }
 
-        if (requestUserDTO.getGender() != null && user.getGender()!= requestUserDTO.getGender()){
+        if (requestUserDTO.getGender() != null && user.getGender() != requestUserDTO.getGender()) {
             Validator.validateGender(requestUserDTO.getGender());
         }
 
-        if (requestUserDTO.getWebsite() != null && !requestUserDTO.getWebsite().equals(user.getWebsite()) ){
+        if (requestUserDTO.getWebsite() != null && !requestUserDTO.getWebsite().isBlank() && !requestUserDTO.getWebsite().equals(user.getWebsite())) {
             Validator.validateRealWebSite(requestUserDTO.getWebsite());
         }
 
-        if(requestUserDTO.getPhoneNumber() != null || !requestUserDTO.getPhoneNumber().isBlank() || !requestUserDTO.getPhoneNumber().equals(user.getPhoneNumber())) {
+        if (requestUserDTO.getPhoneNumber() != null && !requestUserDTO.getPhoneNumber().isBlank() && !requestUserDTO.getPhoneNumber().equals(user.getPhoneNumber())) {
             Validator.validatePhoneNumber(requestUserDTO.getPhoneNumber());
+            Validator.validatePhoneExists(userRepository, requestUserDTO.getPhoneNumber());
         }
 
         UserEntity updatedUserEntity = modelMapper.map(requestUserDTO, UserEntity.class);
@@ -139,10 +143,10 @@ public class UserService {
 
         Validator.nullChecker(requestUserDTO.getEmail(), requestUserDTO.getUsername(), requestUserDTO.getPassword(), requestUserDTO.getFullName(), requestUserDTO.getConfirmPassword());
         Validator.validateUsernameExists(userRepository, requestUserDTO.getUsername());
+        Validator.validateStringLength(MIN_USERNAME_LENGTH, MAX_USERNAME_LENGTH, requestUserDTO.getUsername());
         Validator.validateRealEmail(requestUserDTO.getEmail());
         Validator.validateEmailExists(userRepository, requestUserDTO.getEmail());
         Validator.validateStrongPassword(requestUserDTO.getPassword());
-        Validator.validateStringLength(MIN_USERNAME_LENGTH, MAX_USERNAME_LENGTH, requestUserDTO.getUsername());
         Validator.validateStringLength(MIN_FULL_NAME_LENGTH, MAX_FULL_NAME_LENGTH, requestUserDTO.getFullName());
 
         UserEntity userEntity = modelMapper.map(requestUserDTO, UserEntity.class);
@@ -159,25 +163,26 @@ public class UserService {
 
     public ReturnUserDTO getById(long id, HttpServletRequest request) {
         // LOGIN ONLY
-        UserEntity userEntity = Validator.getEntity(id, userRepository);
         sessionManager.authorizeSession(null, request.getSession(), request);
+        UserEntity userEntity = Validator.getEntity(id, userRepository);
 
         return modelMapper.map(userEntity, ReturnUserDTO.class);
     }
 
-    public ReturnUserDTO getByUsername(String username, HttpServletRequest request) {
+    public List<ReturnUserDTO> getByUsername(String username, HttpServletRequest request) {
         Validator.validateStringLength(0, MAX_USERNAME_LENGTH, username);
         sessionManager.authorizeSession(null, request.getSession(), request);
-        UserEntity userEntity = userRepository.findUserEntityByUsernameContaining(username)
+        List<UserEntity> userEntity = userRepository.findUserEntityByUsernameContaining(username)
                 .orElseThrow(() -> new InvalidDataException("Username '" + username + "' does not exists."));
-        return modelMapper.map(userEntity, ReturnUserDTO.class);
+        return modelMapper.map(userEntity, new TypeToken<List<ReturnUserDTO>>() {}.getType());
     }
 
-    public ReturnUserDTO getByFullName(String fullName) {
+    public List<ReturnUserDTO> getByFullName(String fullName, HttpServletRequest request) {
         Validator.validateStringLength(0, MAX_FULL_NAME_LENGTH, fullName);
-        UserEntity userEntity = userRepository.findUserEntityByFullNameContaining(fullName)
+        sessionManager.authorizeSession(null, request.getSession(), request);
+        List<UserEntity> userEntity = userRepository.findUserEntityByFullNameContaining(fullName)
                 .orElseThrow(() -> new InvalidDataException("User with full name - [" + fullName + "] does not exists."));
-        return modelMapper.map(userEntity, ReturnUserDTO.class);
+        return modelMapper.map(userEntity, new TypeToken<List<ReturnUserDTO>>() {}.getType());
     }
 
     public ReturnUserDTO deleteUser(RequestUserDTO userToDelete, HttpServletRequest request) {
@@ -192,8 +197,7 @@ public class UserService {
     }
 
     public void confirmRegistration(Long userId, String token, HttpServletRequest request) {
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new InvalidDataException("Please provide user ID"));
+        UserEntity user = Validator.getEntity(userId, userRepository);
         if (user.isVerified()) {
             throw new InvalidDataException("User is already verified");
         }
@@ -204,8 +208,8 @@ public class UserService {
     }
 
     public void sendForgottenPasswordEmail(Long userId) {
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new InvalidDataException("Please provide valid email"));
+        Validator.nullChecker(userId);
+        UserEntity user = Validator.getEntity(userId, userRepository);
         String newPass = PasswordGenerator.makePassword(20);
         user.setPassword(passwordEncoder.encode(newPass));
         userRepository.save(user);
@@ -305,15 +309,15 @@ public class UserService {
     }
 
     private UserEntity loginWithUsername(String username, String password) {
-        UserEntity userEntity = userRepository.findUserEntityByUsernameContaining(username).orElseThrow(() -> new InvalidDataException("Invalid username"));
+        UserEntity userEntity = userRepository.findUserEntityByUsername(username).orElseThrow(() -> new InvalidDataException("Invalid username"));
         boolean passwordMatches = passwordEncoder.matches(password, userEntity.getPassword());
         if (!passwordMatches) throw new InvalidDataException("Invalid password");
 
         return userEntity;
     }
 
-    private void sendVerificationVerificationEmail(UserEntity userEntity, String token){
-        String confirmationUrl = "/api/users/registrationConfirm/"+ userEntity.getId()+ "/" + token;
+    private void sendVerificationVerificationEmail(UserEntity userEntity, String token) {
+        String confirmationUrl = "/api/users/registrationConfirm/" + userEntity.getId() + "/" + token;
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(userEntity.getEmail());

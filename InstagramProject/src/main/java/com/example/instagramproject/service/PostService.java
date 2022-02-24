@@ -52,7 +52,6 @@ public class PostService {
     @Autowired
     private ModelMapper modelMapper;
 
-
     public ReturnPostDTO createPost(RequestPostDTO requestPostDTO, HttpServletRequest request) {
         Validator.validateStringLength(0, MAX_POST_TEXT_LENGTH, requestPostDTO.getText());
         Validator.nullChecker(requestPostDTO.getUserId());
@@ -157,14 +156,13 @@ public class PostService {
     }
 
     public TreeSet<ReturnPostDTO> getAllPostsFromUser(Long userId, HttpServletRequest request) {
-        userExistsCheck(userId);
         sessionManager.authorizeSession(null, request.getSession(), request);
+        userExistsCheck(userId);
 
         List<PostEntity> postEntities = postRepository.findAllByUserId(userId);
         if (postEntities.isEmpty()) throw new InvalidDataException("User doesn't have any posts yet");
 
-        return modelMapper.map(postEntities, new TypeToken<TreeSet<ReturnPostDTO>>() {
-        }.getType());
+        return modelMapper.map(postEntities, new TypeToken<TreeSet<ReturnPostDTO>>() {}.getType());
     }
 
     public TreeSet<ReturnPostDTO> getAllPostsByText(String t, HttpServletRequest request) {
@@ -175,8 +173,7 @@ public class PostService {
         List<PostEntity> postEntities1 = postRepository.findAllByTextContaining(t);
         if (postEntities1.isEmpty()) throw new InvalidDataException("No posts with provided text are found");
 
-        return modelMapper.map(postEntities1, new TypeToken<TreeSet<ReturnPostDTO>>() {
-        }.getType());
+        return modelMapper.map(postEntities1, new TypeToken<TreeSet<ReturnPostDTO>>() {}.getType());
     }
 
     public Integer likePost(Long userId, Long postId, HttpServletRequest request) {

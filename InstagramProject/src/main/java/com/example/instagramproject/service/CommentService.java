@@ -58,7 +58,6 @@ public class CommentService {
     }
 
     public ReturnCommentDTO deleteComment(RequestCommentPostDTO commentToDelete, HttpServletRequest request) {
-        if (commentToDelete.getId() == null) throw new InvalidDataException("Invalid date");
         Validator.nullChecker(commentToDelete.getId(), commentToDelete.getUserId());
 
         sessionManager.authorizeSession(commentToDelete.getUserId(), request.getSession(), request);

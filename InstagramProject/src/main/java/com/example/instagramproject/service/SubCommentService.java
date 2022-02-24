@@ -60,7 +60,7 @@ public class SubCommentService {
     }
 
     public ReturnCommentDTO deleteSubComment(RequestSubCommentDTO createSubCommentDTO, HttpServletRequest request) {
-        Validator.nullChecker(createSubCommentDTO.getId());
+        Validator.nullChecker(createSubCommentDTO.getId(), createSubCommentDTO.getUserId());
 
         sessionManager.authorizeSession(createSubCommentDTO.getUserId(), request.getSession(), request);
         SubCommentEntity subComment = Validator.getEntity(createSubCommentDTO.getId(), subCommentRepository);

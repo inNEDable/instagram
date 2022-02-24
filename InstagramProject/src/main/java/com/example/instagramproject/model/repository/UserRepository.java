@@ -13,13 +13,13 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
-    Optional<UserEntity> findUserEntityByUsernameContaining (String name);
+    Optional<List<UserEntity>> findUserEntityByUsernameContaining (String name);
 
     Optional<UserEntity> findUserEntityByUsername (String name);
 
     Optional<UserEntity> findUserEntityByEmail (String email);
 
-    Optional<UserEntity> findUserEntityByFullName(String fullName);
+    Optional<List<UserEntity>> findUserEntityByFullNameContaining(String fullName);
 
-    Optional<UserEntity> findUserEntityByFullNameContaining(String fullName);
+    Optional<UserEntity> findUserEntityByPhoneNumber(String phoneNumber);
 }

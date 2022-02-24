@@ -61,10 +61,9 @@ public class Validator {
     public static void validateStringLength(Integer min, Integer max, String string) {
         string = string.trim();
         if (min == null) min = 0;
-        if (string.isBlank() || string.length() > max || string.length() < min) {
+        if (string.length() > max || string.length() < min) {
             throw new InvalidDataException("A field is out of acceptable length bounds");
         }
-
     }
 
     public static void validateGender(Character gender) {
@@ -98,6 +97,12 @@ public class Validator {
         System.out.println(detectedType);
         if (!detectedType.contains("video") && !detectedType.contains("image")){
             throw new InvalidDataException("Wrong Media provided!!!");
+        }
+    }
+
+    public static void validatePhoneExists(UserRepository userRepository, String phoneNumber) {
+        if (userRepository.findUserEntityByPhoneNumber(phoneNumber).isPresent()) {
+            throw new InvalidDataException("This phone number is taken. Please try another");
         }
     }
 }

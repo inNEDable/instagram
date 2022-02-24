@@ -81,36 +81,36 @@ public class UserController {
     }
 
     @GetMapping("/find-by-username/{username}")
-    public ResponseEntity<ReturnUserDTO> getByUsername(@PathVariable(name = "username") String username, HttpServletRequest request) {
-        ReturnUserDTO returnUserDTO = userService.getByUsername(username, request);
+    public ResponseEntity<List<ReturnUserDTO>> getByUsername(@PathVariable(name = "username") String username, HttpServletRequest request) {
+        List<ReturnUserDTO> returnUserDTO = userService.getByUsername(username, request);
         return new ResponseEntity<>(returnUserDTO, HttpStatus.OK);
     }
 
     @GetMapping("/find-by-full-name/{fullName}")
-    public ResponseEntity<ReturnUserDTO> getByFullName(@PathVariable(name = "fullName") String fullName) {
-        ReturnUserDTO returnUserDTO = userService.getByFullName(fullName);
+    public ResponseEntity<List<ReturnUserDTO>> getByFullName(@PathVariable(name = "fullName") String fullName, HttpServletRequest request) {
+        List<ReturnUserDTO> returnUserDTO = userService.getByFullName(fullName, request);
         return new ResponseEntity<>(returnUserDTO, HttpStatus.OK);
     }
 
     @PutMapping("/{followerId}/follows/{followedId}")
-    public ResponseEntity<ReturnUserDTO> userFollowUser(@PathVariable Long followerId, @PathVariable Long followedId, HttpServletRequest request){
+    public ResponseEntity<ReturnUserDTO> userFollowUser(@PathVariable Long followerId, @PathVariable Long followedId, HttpServletRequest request) {
         ReturnUserDTO followedUserDTO = userService.userFollowsUser(followerId, followedId, request);
         return new ResponseEntity<>(followedUserDTO, HttpStatus.CREATED);
     }
 
     @PutMapping("/{followerId}/unfollows/{followedId}")
-    public ResponseEntity<ReturnUserDTO> userUnFollowUser(@PathVariable Long followerId, @PathVariable Long followedId, HttpServletRequest request){
+    public ResponseEntity<ReturnUserDTO> userUnFollowUser(@PathVariable Long followerId, @PathVariable Long followedId, HttpServletRequest request) {
         ReturnUserDTO followedUserDTO = userService.unFollowsUser(followerId, followedId, request);
         return new ResponseEntity<>(followedUserDTO, HttpStatus.CREATED);
     }
 
     @GetMapping("/getFollowers/{userId}")
-    public Integer getFollowers (@PathVariable Long userId, HttpServletRequest request){
+    public Integer getFollowers(@PathVariable Long userId, HttpServletRequest request) {
         return userService.getFollowers(userId, request);
     }
 
     @GetMapping("/getFollowed/{userId}")
-    public Integer getFollowed (@PathVariable Long userId, HttpServletRequest request){
+    public Integer getFollowed(@PathVariable Long userId, HttpServletRequest request) {
         return userService.getFollowed(userId, request);
     }
 }
