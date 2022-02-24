@@ -156,7 +156,9 @@ public class UserService {
         userEntity.setVerificationToken(token);
         userRepository.save(userEntity);
 
-        sendVerificationVerificationEmail(userEntity, token);
+        new Thread(() -> {
+            sendVerificationVerificationEmail(userEntity, token);
+        }).start();
 
         return modelMapper.map(userEntity, ReturnUserDTO.class);
     }
@@ -213,11 +215,13 @@ public class UserService {
         String newPass = PasswordGenerator.makePassword(20);
         user.setPassword(passwordEncoder.encode(newPass));
         userRepository.save(user);
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(user.getEmail());
-        message.setSubject("Instagram Password change");
-        message.setText("Your new password is: " + newPass);
-        emailSender.send(message);
+        new Thread(() -> {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(user.getEmail());
+            message.setSubject("Instagram Password change");
+            message.setText("Your new password is: " + newPass);
+            emailSender.send(message);
+        }).start();
     }
 
     public ReturnUserDTO userFollowsUser(Long followerId, Long followedId, HttpServletRequest request) {
