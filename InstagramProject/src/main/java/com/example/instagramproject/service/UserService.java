@@ -76,7 +76,8 @@ public class UserService {
     }
 
     public ReturnUserDTO changePassword(RequestUserDTO requestUserDTO, HttpServletRequest request) {
-        UserEntity userEntity = Validator.getEntityWithSessionValidation(true, requestUserDTO.getId(), userRepository , request, sessionManager);
+        UserEntity userEntity = Validator.getEntity(requestUserDTO.getId(), userRepository);
+        sessionManager.authorizeSession(requestUserDTO.getId(), request.getSession(), request);
         Validator.nullChecker(requestUserDTO.getPassword(), requestUserDTO.getNewPassword());
 
         if (!passwordEncoder.matches(requestUserDTO.getPassword(), userEntity.getPassword())) {
@@ -95,7 +96,9 @@ public class UserService {
     }
 
     public ReturnUserDTO edit(RequestUserDTO requestUserDTO, HttpServletRequest request) {
-        UserEntity user = Validator.getEntityWithSessionValidation(true, requestUserDTO.getId(), userRepository , request, sessionManager);
+        UserEntity user = Validator.getEntity(requestUserDTO.getId(), userRepository);
+        sessionManager.authorizeSession(requestUserDTO.getId(), request.getSession(), request);
+
 
         if (requestUserDTO.getUsername() != null && !user.getUsername().equals(requestUserDTO.getUsername())) {
             Validator.validateUsernameExists(userRepository, requestUserDTO.getUsername());
@@ -156,7 +159,9 @@ public class UserService {
 
     public ReturnUserDTO getById(long id, HttpServletRequest request) {
         // LOGIN ONLY
-        UserEntity userEntity = Validator.getEntityWithSessionValidation(false, id, userRepository, request, sessionManager);
+        UserEntity userEntity = Validator.getEntity(id, userRepository);
+        sessionManager.authorizeSession(null, request.getSession(), request);
+
         return modelMapper.map(userEntity, ReturnUserDTO.class);
     }
 
@@ -176,7 +181,8 @@ public class UserService {
     }
 
     public ReturnUserDTO deleteUser(RequestUserDTO userToDelete, HttpServletRequest request) {
-        UserEntity userEntity = Validator.getEntityWithSessionValidation(true, userToDelete.getId(), userRepository, request, sessionManager);
+        UserEntity userEntity = Validator.getEntity(userToDelete.getId(), userRepository);
+        sessionManager.authorizeSession(userToDelete.getId(), request.getSession(), request);
 
         sessionManager.logOut(request.getSession());
         request.getSession().invalidate();
@@ -211,9 +217,11 @@ public class UserService {
     }
 
     public ReturnUserDTO userFollowsUser(Long followerId, Long followedId, HttpServletRequest request) {
-        if (followerId == null || followedId == null) throw new InvalidDataException("Please provide both users IDs");
+        Validator.nullChecker(followedId, followerId);
 
-        UserEntity followerUser = Validator.getEntityWithSessionValidation(true, followerId, userRepository, request, sessionManager);
+        UserEntity followerUser = Validator.getEntity(followerId, userRepository);
+        sessionManager.authorizeSession(followerId, request.getSession(), request);
+
         UserEntity followedUser = userRepository.findById(followedId).orElseThrow(() -> new InvalidDataException("Followed doesn't exist"));
 
         if (followedUser.getFollowers().contains(followerUser))
@@ -226,9 +234,11 @@ public class UserService {
     }
 
     public ReturnUserDTO unFollowsUser(Long followerId, Long followedId, HttpServletRequest request) {
-        if (followerId == null || followedId == null) throw new InvalidDataException("Please provide both users IDs");
+        Validator.nullChecker(followedId, followerId);
 
-        UserEntity followerUser = Validator.getEntityWithSessionValidation(true, followerId, userRepository, request, sessionManager);
+        UserEntity followerUser = Validator.getEntity(followerId, userRepository);
+        sessionManager.authorizeSession(followerId, request.getSession(), request);
+
         UserEntity followedUser = userRepository.findById(followedId).orElseThrow(() -> new InvalidDataException("Followed doesn't exist"));
 
         if (!followedUser.getFollowers().contains(followerUser))
@@ -242,19 +252,22 @@ public class UserService {
 
     public Integer getFollowers(Long userId, HttpServletRequest request) {
         // LOGIN ONLY
-        UserEntity userEntity = Validator.getEntityWithSessionValidation(false, userId, userRepository, request, sessionManager);
+        UserEntity userEntity = Validator.getEntity(userId, userRepository);
+        sessionManager.authorizeSession(null, request.getSession(), request);
         return userEntity.getFollowers().size();
     }
 
     public Integer getFollowed(Long userId, HttpServletRequest request) {
         // LOGIN only
-        UserEntity userEntity = Validator.getEntityWithSessionValidation(false, userId, userRepository,  request, sessionManager);
+        UserEntity userEntity = Validator.getEntity(userId, userRepository);
+        sessionManager.authorizeSession(null, request.getSession(), request);
         return userEntity.getFollowed().size();
     }
 
     public String changeProfilePicture(MultipartFile multipartFile, HttpServletRequest request) {
         Long userId = (Long) request.getSession().getAttribute(SessionManager.USER_ID);
-        UserEntity userEntity = Validator.getEntityWithSessionValidation(true, userId, userRepository, request, sessionManager);
+        UserEntity userEntity = Validator.getEntity(userId, userRepository);
+        sessionManager.authorizeSession(userId, request.getSession(), request);
 
         String fileName = System.nanoTime() + "."
                 + FilenameUtils.getExtension(multipartFile.getOriginalFilename());

@@ -1,11 +1,12 @@
 package com.example.instagramproject.service;
 
 import com.example.instagramproject.exceptions.InvalidDataException;
-import com.example.instagramproject.model.entity.PostEntity;
 import com.example.instagramproject.model.entity.StoryEntity;
 import com.example.instagramproject.model.repository.StoryRepository;
+import com.example.instagramproject.model.repository.UserRepository;
 import com.example.instagramproject.util.FileManager;
 import com.example.instagramproject.util.SessionManager;
+import com.example.instagramproject.util.Validator;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,10 +33,15 @@ public class StoryService {
     @Autowired
     private SessionManager sessionManager;
 
+    @Autowired
+    private UserRepository userRepository;
+
+
     @SneakyThrows
     public String createStory(Long userId, MultipartFile multipartFile, HttpServletRequest request) {
-        if (userId == null || multipartFile.isEmpty()) throw new InvalidDataException("Data missing from request");
-
+        Validator.nullChecker(userId, multipartFile);
+        if (!userRepository.existsById(userId)) throw new InvalidDataException("User doesn't exist");
+        if (multipartFile.isEmpty()) throw new InvalidDataException("Media missing from request");
         sessionManager.authorizeSession(userId, request.getSession(), request);
 
         String fileName = System.nanoTime() + "."
@@ -65,7 +71,7 @@ public class StoryService {
 
     @SneakyThrows
     public void getStoryMedia(Long storyId, String requestedFile, HttpServletRequest request, HttpServletResponse response) {
-        if (storyId == null || requestedFile == null) throw new InvalidDataException("Missing request parameters");
+        Validator.nullChecker(storyId, requestedFile);
         sessionManager.authorizeSession(null, request.getSession(), request);
 
         String currentPostFolder = "story-" + (long) request.getSession().getAttribute(SessionManager.USER_ID);
@@ -81,6 +87,19 @@ public class StoryService {
         Files.copy(mediaToGet.toPath(), response.getOutputStream());
     }
 
+    public List<Long> getAllStoriesFromUser(Long userId, HttpServletRequest request) {
+        Validator.nullChecker(userId);
+        if (!userRepository.existsById(userId)) throw new InvalidDataException("User doesn't exist");
+
+        sessionManager.authorizeSession(null, request.getSession(), request);
+
+        List<Long> storyEntities = storyRepository.findAllByUserId(userId);
+        if (storyEntities.isEmpty()) {
+            throw new InvalidDataException("User doesn't have any stories yet");
+        }
+        return storyEntities;
+    }
+
     @Scheduled(initialDelay = 1000 * 60, fixedDelay = 1000 * 60)
     public void cronJob() {
         List<StoryEntity> storiesForDelete = storyRepository.findAllByExpDateBefore(LocalDateTime.now());
@@ -93,17 +112,5 @@ public class StoryService {
             FileManager.deleteDirectory(mediaOfDeletedPost);
         }
         storyRepository.deleteAll(storiesForDelete);
-    }
-
-    public List<Long> getAllStoriesFromUser(Long userId, HttpServletRequest request) {
-        //Validator.userExistsCheck(userId);
-
-        sessionManager.authorizeSession(null, request.getSession(), request);
-
-        List<Long> storyEntities = storyRepository.findAllByUserId(userId);
-        if (storyEntities.isEmpty()) {
-            throw new InvalidDataException("User doesn't have any stories yet");
-        }
-        return storyEntities;
     }
 }

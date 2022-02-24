@@ -11,5 +11,5 @@ import java.util.List;
 public interface SubCommentRepository extends JpaRepository<SubCommentEntity, Long> {
 
     @Query(value = "SELECT text FROM sub_comments as c WHERE c.parent_comment_id = ?1", nativeQuery = true)
-    List<String> findAllCommentByCommentId(Long commentId);
+    List<String> findAllSubCommentByCommentId(Long commentId);
 }

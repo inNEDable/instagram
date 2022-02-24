@@ -9,6 +9,7 @@ import com.example.instagramproject.model.entity.TagEntity;
 import com.example.instagramproject.model.repository.PostRepository;
 import com.example.instagramproject.model.repository.TagRepository;
 import com.example.instagramproject.util.SessionManager;
+import com.example.instagramproject.util.Validator;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,8 @@ import java.util.TreeSet;
 @Service
 public class TagService {
 
+    public static final int MAX_TAG_TEXT = 100;
+    public static final int MIN_TAG_TEXT = 1;
     @Autowired
     private PostRepository postRepository;
 
@@ -36,63 +39,65 @@ public class TagService {
 
 
     public ReturnTagDTO addTagToPost(Long postId, String tagText, HttpServletRequest request) {
-        if (postId == null || tagText.isBlank()) throw new InvalidDataException("Missing data in request!");
+        Validator.nullChecker(postId, tagText);
+        Validator.validateStringLength(MIN_TAG_TEXT, MAX_TAG_TEXT, tagText);
+
         PostEntity postEntity = tagToPostValidation(postId, request);
 
         TagEntity tagEntity = tagRepository.findByText(tagText);
-        if (tagEntity == null){
+        if (tagEntity == null) {
             tagEntity = generateNewTagAndAddToPost(postEntity, tagText);
         } else {
-            if (postEntity.getTags().contains(tagEntity)) throw new InvalidDataException("This tag is already assigned to the post");
+            if (postEntity.getTags().contains(tagEntity))
+                throw new InvalidDataException("This tag is already assigned to the post");
             tagEntity.getPosts().add(postEntity);
             tagRepository.save(tagEntity);
         }
 
         return modelMapper.map(tagEntity, ReturnTagDTO.class);
-
     }
 
     public void deleteTagFromPost(Long postId, Long tagId, HttpServletRequest request) {
-        if (postId == null || tagId == null) throw new InvalidDataException("Missing data in request!");
+        Validator.nullChecker(postId, tagId);
         PostEntity postEntity = tagToPostValidation(postId, request);
-        TagEntity tagEntity = tagRepository.findById(tagId).orElseThrow(() -> new InvalidDataException("Such tag doesn't exist!"));
-
+        TagEntity tagEntity = Validator.getEntity(tagId, tagRepository);
         if (tagEntity.getPosts() == null || !tagEntity.getPosts().contains(postEntity))
             throw new InvalidDataException("This post doesn't have the specified tag!");
 
         tagEntity.getPosts().remove(postEntity);
         tagRepository.save(tagEntity);
-
     }
 
     public TreeSet<PostEntity> getAllPostsByTag(String tagText, HttpServletRequest request) {
-        if (tagText == null) throw new InvalidDataException("Tag id not provided");
+        Validator.nullChecker(tagText);
+        Validator.validateStringLength(MIN_TAG_TEXT, MAX_TAG_TEXT, tagText);
         sessionManager.authorizeSession(null, request.getSession(), request);
+
         TagEntity tagEntity = tagRepository.findByText(tagText);
-        if (tagEntity == null) throw  new InvalidDataException("Such tag doesn't exist");
+        if (tagEntity == null) throw new InvalidDataException("Such tag doesn't exist");
 
         Set<PostEntity> postEntities = tagEntity.getPosts();
         if (postEntities.isEmpty()) throw new InvalidDataException("This tag has no posts");
 
-        return modelMapper.map(postEntities, new TypeToken<TreeSet<ReturnPostDTO>>() {}.getType());
-
+        return modelMapper.map(postEntities, new TypeToken<TreeSet<ReturnPostDTO>>() {
+        }.getType());
     }
 
     public Set<ReturnTagDTO> getAllTagsFromPost(Long postId, HttpServletRequest request) {
-        if (postId == null) throw new InvalidDataException("Please provide post ID");
+        Validator.nullChecker(postId);
         sessionManager.authorizeSession(null, request.getSession(), request);
-        PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new InvalidDataException("Post doesn't exist"));
+        PostEntity postEntity = Validator.getEntity(postId, postRepository);
 
         Set<TagEntity> tagEntities = postEntity.getTags();
         if (tagEntities.isEmpty()) throw new InvalidDataException("This post doesn't have any tags");
 
-        return modelMapper.map(tagEntities, new TypeToken<Set<ReturnTagDTO>>() {}.getType());
-
+        return modelMapper.map(tagEntities, new TypeToken<Set<ReturnTagDTO>>() {
+        }.getType());
     }
 
     private PostEntity tagToPostValidation(Long postId, HttpServletRequest request) {
         sessionManager.authorizeSession(null, request.getSession(), request);
-        PostEntity postEntity =  postRepository.findById(postId).orElseThrow(() -> new InvalidDataException("Post doesn't exist"));
+        PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new InvalidDataException("Post doesn't exist"));
         if (postEntity.getUser().getId() != sessionManager.getUserID(request))
             throw new UnauthorizedAccessException("This post doesn't belong to the user!");
         return postEntity;

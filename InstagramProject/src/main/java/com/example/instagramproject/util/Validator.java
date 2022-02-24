@@ -4,7 +4,6 @@ import com.example.instagramproject.exceptions.InvalidDataException;
 import com.example.instagramproject.model.repository.UserRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.regex.Pattern;
 
 public class Validator {
@@ -57,8 +56,9 @@ public class Validator {
     }
 
     public static void validateStringLength(Integer min, Integer max, String string) {
+        string = string.trim();
         if (min == null) min = 0;
-        if (string.length() > max || string.length() < min) {
+        if (string.isBlank() || string.length() > max || string.length() < min) {
             throw new InvalidDataException("A field is out of acceptable length bounds");
         }
 
@@ -83,17 +83,8 @@ public class Validator {
         }
     }
 
-    public static <EntityType> EntityType getEntityWithSessionValidation(
-            boolean fullVerification,
-            Long id,
-            JpaRepository<EntityType, Long> repository,
-            HttpServletRequest request,
-            SessionManager sessionManager
-    ) {
+    public static <EntityType> EntityType getEntity(Long id, JpaRepository<EntityType, Long> repository) {
         if (id == null) throw new InvalidDataException("Please provide entity ID");
-        EntityType entity = repository.findById(id).orElseThrow(() -> new InvalidDataException("Entity doesn't exist"));
-        if (!fullVerification) id = null;
-        sessionManager.authorizeSession(id, request.getSession(), request);
-        return entity;
+        return repository.findById(id).orElseThrow(() -> new InvalidDataException("Entity doesn't exist"));
     }
 }
