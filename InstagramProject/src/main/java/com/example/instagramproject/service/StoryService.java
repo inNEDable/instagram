@@ -39,6 +39,7 @@ public class StoryService {
 
     @SneakyThrows
     public String createStory(Long userId, MultipartFile multipartFile, HttpServletRequest request) {
+        Validator.validateMIME(multipartFile);
         Validator.nullChecker(userId, multipartFile);
         if (!userRepository.existsById(userId)) throw new InvalidDataException("User doesn't exist");
         if (multipartFile.isEmpty()) throw new InvalidDataException("Media missing from request");

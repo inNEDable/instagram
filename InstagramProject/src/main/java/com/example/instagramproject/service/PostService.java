@@ -73,6 +73,7 @@ public class PostService {
 
     @SneakyThrows
     public String addMediaToPost(Long userId, Long postId, MultipartFile multipartFile, HttpServletRequest request) {
+        Validator.validateMIME(multipartFile);
         Validator.nullChecker(userId, postId, multipartFile);
         if (multipartFile.isEmpty()) {
             throw new InvalidDataException("Media missing from request");

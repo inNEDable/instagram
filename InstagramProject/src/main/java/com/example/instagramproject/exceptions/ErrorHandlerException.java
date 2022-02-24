@@ -1,11 +1,14 @@
 package com.example.instagramproject.exceptions;
 
 import com.example.instagramproject.model.DTO.ErrorDTO;
+import org.apache.tomcat.util.http.fileupload.impl.SizeLimitExceededException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
+import java.util.Arrays;
 
 @ControllerAdvice
 public class ErrorHandlerException extends ResponseEntityExceptionHandler {
@@ -27,5 +30,12 @@ public class ErrorHandlerException extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(errorDTO,HttpStatus.UNAUTHORIZED );
     }
 
+    @ExceptionHandler(value = {SizeLimitExceededException.class})
+    protected ResponseEntity<ErrorDTO> fileSizeTooBig (SizeLimitExceededException ex) {
+        ErrorDTO errorDTO = new ErrorDTO();
+        errorDTO.setMessage("File too big : " + ex.getMessage());
+        errorDTO.setStatus(HttpStatus.UNAUTHORIZED.value());
+        return new ResponseEntity<>(errorDTO,HttpStatus.UNAUTHORIZED );
+    }
 
 }

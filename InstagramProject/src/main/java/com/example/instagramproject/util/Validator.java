@@ -2,7 +2,10 @@ package com.example.instagramproject.util;
 
 import com.example.instagramproject.exceptions.InvalidDataException;
 import com.example.instagramproject.model.repository.UserRepository;
+import lombok.SneakyThrows;
+import org.apache.tika.Tika;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.regex.Pattern;
 
@@ -86,5 +89,15 @@ public class Validator {
     public static <EntityType> EntityType getEntity(Long id, JpaRepository<EntityType, Long> repository) {
         if (id == null) throw new InvalidDataException("Please provide entity ID");
         return repository.findById(id).orElseThrow(() -> new InvalidDataException("Entity doesn't exist"));
+    }
+
+    @SneakyThrows
+    public static void validateMIME(MultipartFile multipartFile) {
+        Tika tika = new Tika();
+        String detectedType = tika.detect(multipartFile.getInputStream());
+        System.out.println(detectedType);
+        if (!detectedType.contains("video") && !detectedType.contains("image")){
+            throw new InvalidDataException("Wrong Media provided!!!");
+        }
     }
 }
