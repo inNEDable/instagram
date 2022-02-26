@@ -6,21 +6,23 @@ public class PasswordGenerator {
     private static final String SYMBOLS = "@#$%";
     private static final String DIGITS = "0123456789";
     private static final String LOWER_CASES = "abcdefghijklmnopqrstuvwxyz";
+    public static final int PASSWORD_LENGTH = 20;
 
-    public static String makePassword(int length) {
-        String password = "";
+    public static String makePassword() {
+        StringBuilder password = new StringBuilder();
 
-        for (int i = 0; i < length - 3; i++) {
-            password += randomCharacter(LOWER_CASES);
+        for (int i = 0; i < PASSWORD_LENGTH - 3; i++) {
+            password.append(randomCharacter(LOWER_CASES));
         }
+        String resultPas = password.toString();
         String randomDigit = randomCharacter(DIGITS);
-        password = insertAtRandom(password, randomDigit);
+        resultPas = insertAtRandom(resultPas, randomDigit);
         String randomCharacter = randomCharacter(SYMBOLS);
-        password = insertAtRandom(password, randomCharacter);
+        resultPas = insertAtRandom(resultPas, randomCharacter);
         String upperCase = randomCharacter(UPPER_CASES);
-        password = insertAtRandom(password, upperCase);
+        resultPas = insertAtRandom(resultPas, upperCase);
 
-        return password;
+        return resultPas;
     }
 
     private static String randomCharacter(String characters) {

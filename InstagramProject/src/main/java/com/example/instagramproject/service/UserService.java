@@ -213,7 +213,7 @@ public class UserService {
     public void sendForgottenPasswordEmail(Long userId) {
         Validator.nullChecker(userId);
         UserEntity user = Validator.getEntity(userId, userRepository);
-        String newPass = PasswordGenerator.makePassword(20);
+        String newPass = PasswordGenerator.makePassword();
         user.setPassword(passwordEncoder.encode(newPass));
         userRepository.save(user);
         new Thread(() -> {
