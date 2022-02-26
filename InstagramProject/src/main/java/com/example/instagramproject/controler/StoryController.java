@@ -1,5 +1,6 @@
 package com.example.instagramproject.controler;
 
+import com.example.instagramproject.model.DTO.ReturnStoryDTO;
 import com.example.instagramproject.service.StoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -10,7 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.List;
+import java.util.TreeSet;
 
 
 @RestController
@@ -20,23 +21,25 @@ public class StoryController {
     @Autowired
     private StoryService storyService;
 
-    @PostMapping("/create/{userId}")
-    public String createStory(@PathVariable Long userId, @RequestBody MultipartFile multipartFile, HttpServletRequest request){
-        return storyService.createStory(userId, multipartFile, request);
+    @PostMapping("/{userId}")
+    public ResponseEntity<ReturnStoryDTO> createStory(@PathVariable Long userId, @RequestBody MultipartFile multipartFile, HttpServletRequest request) {
+        ReturnStoryDTO returnStoryDTO = storyService.createStory(userId, multipartFile, request);
+        return new ResponseEntity<>(returnStoryDTO, HttpStatus.CREATED);
     }
 
     @GetMapping("/get-story-media/{storyId}/{requestedFile}")
-    public void getSingleStoryMedia(@PathVariable Long storyId, @PathVariable String requestedFile, HttpServletRequest request, HttpServletResponse response){
-        storyService.getStoryMedia(storyId, requestedFile, request, response);
+    public ResponseEntity<ReturnStoryDTO> getSingleStoryMedia(@PathVariable Long storyId, @PathVariable String requestedFile, HttpServletRequest request, HttpServletResponse response) {
+        ReturnStoryDTO returnStoryDTO = storyService.getStoryMedia(storyId, requestedFile, request, response);
+        return new ResponseEntity<>(returnStoryDTO, HttpStatus.OK);
     }
 
-    @GetMapping("/all-from-user/{userId}")
-    public ResponseEntity<List<Long>> getAllStoriesFromUser(@PathVariable Long userId, HttpServletRequest request){
-        List<Long> stories = storyService.getAllStoriesFromUser(userId, request);
+    @GetMapping("/all-from-user")
+    public ResponseEntity<TreeSet<ReturnStoryDTO>> getAllStoriesFromUser(HttpServletRequest request) {
+        TreeSet<ReturnStoryDTO> stories = storyService.getAllStoriesFromUser(request);
 
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.set("NumberOfStories", String.valueOf(stories.size()));
 
-        return new ResponseEntity<>(stories,responseHeaders, HttpStatus.OK);
+        return new ResponseEntity<>(stories, responseHeaders, HttpStatus.OK);
     }
 }

@@ -1,6 +1,8 @@
 package com.example.instagramproject.service;
 
 import com.example.instagramproject.exceptions.InvalidDataException;
+import com.example.instagramproject.model.DTO.ReturnCommentDTO;
+import com.example.instagramproject.model.DTO.ReturnStoryDTO;
 import com.example.instagramproject.model.entity.StoryEntity;
 import com.example.instagramproject.model.repository.StoryRepository;
 import com.example.instagramproject.model.repository.UserRepository;
@@ -9,6 +11,8 @@ import com.example.instagramproject.util.SessionManager;
 import com.example.instagramproject.util.Validator;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FilenameUtils;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -21,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.TreeSet;
 
 @Service
 public class StoryService {
@@ -36,9 +41,12 @@ public class StoryService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private ModelMapper modelMapper;
+
 
     @SneakyThrows
-    public String createStory(Long userId, MultipartFile multipartFile, HttpServletRequest request) {
+    public ReturnStoryDTO createStory(Long userId, MultipartFile multipartFile, HttpServletRequest request) {
         Validator.validateMIME(multipartFile);
         Validator.nullChecker(userId, multipartFile);
         if (!userRepository.existsById(userId)) throw new InvalidDataException("User doesn't exist");
@@ -67,14 +75,16 @@ public class StoryService {
 
         storyRepository.save(storyEntity);
 
-        return fileName;
+        return modelMapper.map(storyEntity, ReturnStoryDTO.class);
     }
 
     @SneakyThrows
-    public void getStoryMedia(Long storyId, String requestedFile, HttpServletRequest request, HttpServletResponse response) {
+    public ReturnStoryDTO getStoryMedia(Long storyId, String requestedFile, HttpServletRequest request, HttpServletResponse response) {
         Validator.nullChecker(storyId, requestedFile);
+        if (!storyRepository.existsById(storyId)) throw new InvalidDataException("Story doesn't exist");
         sessionManager.authorizeSession(null, request.getSession(), request);
 
+        StoryEntity storyEntity = Validator.getEntity(storyId, storyRepository);
         String currentPostFolder = "story-" + (long) request.getSession().getAttribute(SessionManager.USER_ID);
 
         File mediaToGet = new File(
@@ -86,22 +96,24 @@ public class StoryService {
         if (!mediaToGet.exists()) throw new InvalidDataException("Picture not found on the server");
 
         Files.copy(mediaToGet.toPath(), response.getOutputStream());
+
+        return modelMapper.map(storyEntity, ReturnStoryDTO.class);
     }
 
-    public List<Long> getAllStoriesFromUser(Long userId, HttpServletRequest request) {
+    public TreeSet<ReturnStoryDTO> getAllStoriesFromUser(HttpServletRequest request) {
+        Long userId = (Long) request.getSession().getAttribute(SessionManager.USER_ID);
         Validator.nullChecker(userId);
         if (!userRepository.existsById(userId)) throw new InvalidDataException("User doesn't exist");
 
         sessionManager.authorizeSession(null, request.getSession(), request);
 
-        List<Long> storyEntities = storyRepository.findAllByUserId(userId);
-        if (storyEntities.isEmpty()) {
-            throw new InvalidDataException("User doesn't have any stories yet");
-        }
-        return storyEntities;
+        List<StoryEntity> storyEntities = storyRepository.findAllByUserId(userId);
+        if (storyEntities.isEmpty()) throw new InvalidDataException("User doesn't have any stories yet");
+
+        return modelMapper.map(storyEntities, new TypeToken<TreeSet<ReturnStoryDTO>>() {}.getType());
     }
 
-    @Scheduled(initialDelay = 1000 * 60, fixedDelay = 1000 * 60)
+    @Scheduled(initialDelay = 1000 * 60, fixedDelay = 1000 * 60 * 5)
     public void cronJob() {
         List<StoryEntity> storiesForDelete = storyRepository.findAllByExpDateBefore(LocalDateTime.now());
         for (StoryEntity storyEntity : storiesForDelete) {

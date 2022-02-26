@@ -13,6 +13,6 @@ public interface StoryRepository extends JpaRepository<StoryEntity, Long> {
 
     List<StoryEntity> findAllByExpDateBefore(LocalDateTime now);
 
-    @Query(value = "SELECT id FROM stories as s WHERE s.user_id = ?1", nativeQuery = true)
-    List<Long> findAllByUserId(Long userId);
+    @Query(value = "SELECT * FROM stories as s WHERE s.user_id = ?1", nativeQuery = true)
+    List<StoryEntity> findAllByUserId(Long userId);
 }
