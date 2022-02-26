@@ -1,6 +1,6 @@
 package com.example.instagramproject.controler;
 
-import com.example.instagramproject.model.DTO.RequestCommentPostDTO;
+import com.example.instagramproject.model.DTO.RequestCommentDTO;
 import com.example.instagramproject.model.DTO.ReturnCommentDTO;
 import com.example.instagramproject.service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
+import java.util.TreeSet;
 
 @RestController
 @RequestMapping("api/comments")
@@ -18,35 +18,38 @@ public class CommentController {
     @Autowired
     private CommentService commentService;
 
-    @PostMapping("/add")
-    public ResponseEntity<ReturnCommentDTO> createComment(@RequestBody RequestCommentPostDTO createCommentPostDTO, HttpServletRequest request) {
-        ReturnCommentDTO returnCommentDTO = commentService.createCommentPost(createCommentPostDTO, request);
+    @PostMapping("/{postId}")
+    public ResponseEntity<ReturnCommentDTO> createComment(@PathVariable Long postId, @RequestBody RequestCommentDTO createCommentPostDTO, HttpServletRequest request) {
+        ReturnCommentDTO returnCommentDTO = commentService.createCommentPost(postId, createCommentPostDTO, request);
         return new ResponseEntity<>(returnCommentDTO, HttpStatus.CREATED);
     }
 
-    @DeleteMapping("/delete")
-    public ResponseEntity<ReturnCommentDTO> deleteComment(@RequestBody RequestCommentPostDTO commentToDelete, HttpServletRequest request) {
-        ReturnCommentDTO returnCommentDTO = commentService.deleteComment(commentToDelete, request);
+    @DeleteMapping("/{commentId}")
+    public ResponseEntity<ReturnCommentDTO> deleteComment(@PathVariable Long commentId, HttpServletRequest request) {
+        ReturnCommentDTO returnCommentDTO = commentService.deleteComment(commentId, request);
         return new ResponseEntity<>(returnCommentDTO, HttpStatus.OK);
     }
 
-    @PostMapping("/{commentId}/like")
-    public Long likeCommentPost(@PathVariable(name = "commentId") Long commentId, HttpServletRequest request) {
-        return commentService.likeCommentPost(commentId, request);
+    @PostMapping("/like/{commentId}")
+    public ResponseEntity<ReturnCommentDTO> likeCommentPost(@PathVariable Long commentId, HttpServletRequest request) {
+        ReturnCommentDTO returnCommentDTO = commentService.likeCommentPost(commentId, request);
+        return new ResponseEntity<>(returnCommentDTO, HttpStatus.OK);
     }
 
-    @PostMapping("/{commentId}/unlike")
-    public Long unlikeCommentPost(@PathVariable(name = "commentId") Long commentId, HttpServletRequest request) {
-        return commentService.unlikeCommentPost(commentId, request);
+    @PostMapping("/unlike/{commentId}")
+    public ResponseEntity<ReturnCommentDTO> unlikeCommentPost(@PathVariable Long commentId, HttpServletRequest request) {
+        ReturnCommentDTO returnCommentDTO = commentService.unlikeCommentPost(commentId, request);
+        return new ResponseEntity<>(returnCommentDTO, HttpStatus.OK);
     }
 
     @GetMapping("/get-all-likes-comment/{commentId}")
-    public Long getAllLikesCommentPost(@PathVariable(name = "commentId") Long commentId, HttpServletRequest request) {
+    public Long getAllLikesCommentPost(@PathVariable Long commentId, HttpServletRequest request) {
         return commentService.getLikeCount(commentId, request);
     }
 
     @GetMapping("/all-post-comments/{postId}")
-    public List<String> getAllPostComments(@PathVariable Long postId, HttpServletRequest request) {
-        return commentService.getAllPostComments(postId, request);
+    public ResponseEntity<TreeSet<ReturnCommentDTO>> getAllPostComments(@PathVariable Long postId, HttpServletRequest request) {
+        TreeSet<ReturnCommentDTO> comments = commentService.getAllPostComments(postId, request);
+        return new ResponseEntity<>(comments, HttpStatus.OK);
     }
 }

@@ -10,6 +10,6 @@ import java.util.List;
 @Repository
 public interface SubCommentRepository extends JpaRepository<SubCommentEntity, Long> {
 
-    @Query(value = "SELECT text FROM sub_comments as c WHERE c.parent_comment_id = ?1", nativeQuery = true)
-    List<String> findAllSubCommentByCommentId(Long commentId);
+    @Query(value = "SELECT * FROM sub_comments as c WHERE c.parent_comment_id = ?1", nativeQuery = true)
+    List<SubCommentEntity> findAllSubCommentByCommentId(Long commentId);
 }

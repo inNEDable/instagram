@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface CommentRepository extends JpaRepository<CommentEntity, Long> {
 
-    @Query(value = "SELECT text FROM post_comments as c WHERE c.post_id = ?1", nativeQuery = true)
-    List<String> findAllCommentsByPostId(Long postId);
+    @Query(value = "SELECT * FROM post_comments as c WHERE c.post_id = ?1", nativeQuery = true)
+    List<CommentEntity> findAllCommentsByPostId(Long postId);
 }
 
