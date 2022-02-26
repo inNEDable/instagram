@@ -219,4 +219,15 @@ public class PostService {
     private void userExistsCheck(Long userId) {
         if (userId == null || !userRepository.existsById(userId)) throw new InvalidDataException("User doesn't exist");
     }
+
+    public TreeSet<ReturnPostDTO> generateFeedForUser(Long userId, HttpServletRequest request) {
+        Validator.nullChecker(userId);
+        sessionManager.authorizeSession(userId, request.getSession(), request);
+        if (!userRepository.existsById(userId)) throw new InvalidDataException("User doesn't exist");
+
+        List<PostEntity> postEntities = postRepository.generateFeedByUserId(userId);
+        if (postEntities.isEmpty()) throw new InvalidDataException("This user doesn't follow anybody. So no feed can be generated");
+
+        return modelMapper.map(postEntities, new TypeToken<TreeSet<ReturnPostDTO>>() {}.getType());
+    }
 }

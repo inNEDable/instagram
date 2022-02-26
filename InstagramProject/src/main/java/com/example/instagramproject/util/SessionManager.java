@@ -33,7 +33,6 @@ public class SessionManager {
             Long userIdFromSession = (Long) session.getAttribute(USER_ID);
             if (!providedUserID.equals(userIdFromSession)) throw new UnauthorizedAccessException("User trying to manipulate foreign profile");
         }
-
     }
 
     public void logOut(HttpSession session){
