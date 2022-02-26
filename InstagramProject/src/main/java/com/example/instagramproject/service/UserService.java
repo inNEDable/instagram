@@ -144,6 +144,7 @@ public class UserService {
         Validator.nullChecker(requestUserDTO.getEmail(), requestUserDTO.getUsername(), requestUserDTO.getPassword(), requestUserDTO.getFullName(), requestUserDTO.getConfirmPassword());
         Validator.validateUsernameExists(userRepository, requestUserDTO.getUsername());
         Validator.validateStringLength(MIN_USERNAME_LENGTH, MAX_USERNAME_LENGTH, requestUserDTO.getUsername());
+        Validator.validateStringSpaces(requestUserDTO.getUsername());
         Validator.validateRealEmail(requestUserDTO.getEmail());
         Validator.validateEmailExists(userRepository, requestUserDTO.getEmail());
         Validator.validateStrongPassword(requestUserDTO.getPassword());

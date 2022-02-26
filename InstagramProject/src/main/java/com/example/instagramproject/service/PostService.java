@@ -18,6 +18,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -220,12 +222,13 @@ public class PostService {
         if (userId == null || !userRepository.existsById(userId)) throw new InvalidDataException("User doesn't exist");
     }
 
-    public TreeSet<ReturnPostDTO> generateFeedForUser(Long userId, HttpServletRequest request) {
+    public TreeSet<ReturnPostDTO> generateFeedForUser(Long userId, int pageNumber, int rowsNumber, HttpServletRequest request) {
         Validator.nullChecker(userId);
         sessionManager.authorizeSession(userId, request.getSession(), request);
         if (!userRepository.existsById(userId)) throw new InvalidDataException("User doesn't exist");
 
-        List<PostEntity> postEntities = postRepository.generateFeedByUserId(userId);
+        Pageable page = PageRequest.of(pageNumber, rowsNumber);
+        List<PostEntity> postEntities = postRepository.generateFeedByUserId(userId, page);
         if (postEntities.isEmpty()) throw new InvalidDataException("This user doesn't follow anybody. So no feed can be generated");
 
         return modelMapper.map(postEntities, new TypeToken<TreeSet<ReturnPostDTO>>() {}.getType());

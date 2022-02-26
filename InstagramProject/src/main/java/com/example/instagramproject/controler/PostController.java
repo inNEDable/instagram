@@ -103,8 +103,12 @@ public class PostController {
         return postService.getAllLikesFromPost(postId, request);
     }
     @GetMapping("/generate-feed/{userId}")
-    public ResponseEntity<TreeSet<ReturnPostDTO>> generateFeedForUser (@PathVariable Long userId, HttpServletRequest request){
-        TreeSet<ReturnPostDTO> postsFromFollowedUsers =  postService.generateFeedForUser(userId, request);
+    public ResponseEntity<TreeSet<ReturnPostDTO>> generateFeedForUser (@PathVariable Long userId,
+                                                                       @RequestParam(name = "pageNumber", defaultValue = "0") int pageNumber,
+                                                                       @RequestParam(name = "rowsNumber", defaultValue = "10") int rowsNumber,
+                                                                       HttpServletRequest request
+    ){
+        TreeSet<ReturnPostDTO> postsFromFollowedUsers =  postService.generateFeedForUser(userId, pageNumber, rowsNumber, request);
         return new ResponseEntity<>(postsFromFollowedUsers, HttpStatus.OK);
     }
 }

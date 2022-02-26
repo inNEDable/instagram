@@ -105,4 +105,10 @@ public class Validator {
             throw new InvalidDataException("This phone number is taken. Please try another");
         }
     }
+
+    public static void validateStringSpaces(String username) {
+        if (username.trim().length() != username.length()) {
+            throw new InvalidDataException("Username can not start and end with spaces");
+        }
+    }
 }

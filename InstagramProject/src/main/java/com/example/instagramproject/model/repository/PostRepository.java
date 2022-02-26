@@ -1,6 +1,7 @@
 package com.example.instagramproject.model.repository;
 
 import com.example.instagramproject.model.entity.PostEntity;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -22,6 +23,6 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
             "JOIN users_follow_users as uu ON (followers.id = uu.follower_user_id) " +
             "JOIN posts as p ON (uu.followed_user_id = p.user_id) " +
             "WHERE followers.id = ?1", nativeQuery = true)
-    List<PostEntity> generateFeedByUserId (Long userId);
+    List<PostEntity> generateFeedByUserId (Long userId, Pageable pageable);
 
 }
