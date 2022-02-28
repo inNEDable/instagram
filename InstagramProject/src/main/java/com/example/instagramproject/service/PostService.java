@@ -77,7 +77,7 @@ public class PostService {
 
     @SneakyThrows
     public String addMediaToPost(Long userId, Long postId, MultipartFile multipartFile, HttpServletRequest request) {
-        Validator.validateMIME(multipartFile);
+        String mimeType = Validator.validateMIME(multipartFile);
         Validator.nullChecker(userId, postId, multipartFile);
         if (multipartFile.isEmpty()) {
             throw new InvalidDataException("Media missing from request");
@@ -99,7 +99,9 @@ public class PostService {
                 + fileName);
 
         Files.copy(multipartFile.getInputStream(), fullPath);
-        picturePurifyService.verifyImagePurity(fullPath);
+        if (mimeType.contains("image")){
+            picturePurifyService.verifyImagePurity(fullPath);
+        }
 
         PostMediaEntity postMediaEntity = new PostMediaEntity();
         postMediaEntity.setUrl(fullPath.toString());
@@ -229,11 +231,11 @@ public class PostService {
     public TreeSet<ReturnPostDTO> generateFeedForUser(Long userId, int pageNumber, int rowsNumber, HttpServletRequest request) {
         Validator.nullChecker(userId);
         sessionManager.authorizeSession(userId, request.getSession(), request);
-        if (!userRepository.existsById(userId)) throw new InvalidDataException("User doesn't exist");
+        UserEntity userEntity = Validator.getEntity(userId, userRepository);
+        if (userEntity.getFollowed().isEmpty())throw new InvalidDataException("This user doesn't follow anybody. So no feed can be generated");
 
         Pageable page = PageRequest.of(pageNumber, rowsNumber);
         List<PostEntity> postEntities = postRepository.generateFeedByUserId(userId, page);
-        if (postEntities.isEmpty()) throw new InvalidDataException("This user doesn't follow anybody. So no feed can be generated");
 
         return modelMapper.map(postEntities, new TypeToken<TreeSet<ReturnPostDTO>>() {}.getType());
     }

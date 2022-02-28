@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Locale;
@@ -37,14 +38,14 @@ public class PicturePurifyService {
             requestImageVerification(file, null, null, tasks, responseString);
             ObjectMapper objectMapper = new ObjectMapper(new JsonFactory());
             status = objectMapper.readValue(responseString.toString(), Status.class);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new PicturePurifyException("IO exception during API call");
         }
         System.out.println(responseString);
         System.out.println("/////////////////////////////////////////////////////");
         System.out.println(status);
 
-        handleStatus(status);
+        handleStatus(status, localPath);
     }
 
 
@@ -90,10 +91,15 @@ public class PicturePurifyService {
     }
 
 
-    private void handleStatus(Status status) {
+    private void handleStatus(Status status, Path localPath) {
         if (status.getFinalDecision().equalsIgnoreCase("OK")){
             System.out.println("IMAGE OK");
         } else {
+            try {
+                Files.delete(localPath);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             System.out.println("IMAGE NOT OK");
             String exceptionMessage = "Porn content: " + status.getPornModeration().getPornContent() +
                     " || Confidence: " + status.getPornModeration().getConfidenceScore() +

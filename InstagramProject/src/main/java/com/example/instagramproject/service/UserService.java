@@ -53,14 +53,18 @@ public class UserService {
     @Autowired
     private ModelMapper modelMapper;
 
+    @Autowired
+    private PicturePurifyService picturePurifyService;
+
+
     public ReturnUserDTO logOut(RequestUserDTO userToLogOut, HttpServletRequest request) {
         Validator.nullChecker(userToLogOut.getId());
-        if (!userRepository.existsById(userToLogOut.getId())) throw new InvalidDataException("Such user doesn't exist");
+        UserEntity userEntity = Validator.getEntity(userToLogOut.getId(), userRepository);
         sessionManager.authorizeSession(userToLogOut.getId(), request.getSession(), request);
 
         sessionManager.logOut(request.getSession());
 
-        return modelMapper.map(userToLogOut, ReturnUserDTO.class);
+        return modelMapper.map(userEntity, ReturnUserDTO.class);
     }
 
     public ReturnUserDTO login(RequestUserDTO userToLogin, HttpServletRequest request) {
@@ -106,33 +110,36 @@ public class UserService {
         if (requestUserDTO.getUsername() != null && !user.getUsername().equals(requestUserDTO.getUsername())) {
             Validator.validateUsernameExists(userRepository, requestUserDTO.getUsername());
             Validator.validateStringLength(MIN_USERNAME_LENGTH, MAX_USERNAME_LENGTH, requestUserDTO.getUsername());
-        }
+        } else requestUserDTO.setUsername(user.getUsername());
 
         if (requestUserDTO.getFullName() != null && !requestUserDTO.getFullName().equals(user.getFullName())) {
             Validator.validateStringLength(MIN_FULL_NAME_LENGTH, MAX_FULL_NAME_LENGTH, requestUserDTO.getFullName());
-        }
+        } else requestUserDTO.setFullName(user.getFullName());
 
         if (requestUserDTO.getEmail() != null && !user.getEmail().equals(requestUserDTO.getEmail())) {
             Validator.validateRealEmail(requestUserDTO.getEmail());
             Validator.validateEmailExists(userRepository, requestUserDTO.getEmail());
-        }
+        } else requestUserDTO.setEmail(user.getEmail());
+
 
         if (requestUserDTO.getGender() != null && user.getGender() != requestUserDTO.getGender()) {
             Validator.validateGender(requestUserDTO.getGender());
-        }
+        } else requestUserDTO.setGender(user.getGender());
 
         if (requestUserDTO.getWebsite() != null && !requestUserDTO.getWebsite().isBlank() && !requestUserDTO.getWebsite().equals(user.getWebsite())) {
             Validator.validateRealWebSite(requestUserDTO.getWebsite());
-        }
+        } else requestUserDTO.setWebsite(user.getWebsite());
 
         if (requestUserDTO.getPhoneNumber() != null && !requestUserDTO.getPhoneNumber().isBlank() && !requestUserDTO.getPhoneNumber().equals(user.getPhoneNumber())) {
             Validator.validatePhoneNumber(requestUserDTO.getPhoneNumber());
             Validator.validatePhoneExists(userRepository, requestUserDTO.getPhoneNumber());
-        }
+        } else requestUserDTO.setPhoneNumber(user.getPhoneNumber());
 
         UserEntity updatedUserEntity = modelMapper.map(requestUserDTO, UserEntity.class);
 
         updatedUserEntity.setPassword(user.getPassword());
+        updatedUserEntity.setVerificationToken(user.getVerificationToken());
+        updatedUserEntity.setVerified(user.isVerified());
         userRepository.save(updatedUserEntity);
 
         return modelMapper.map(updatedUserEntity, ReturnUserDTO.class);
@@ -226,6 +233,7 @@ public class UserService {
     }
 
     public ReturnUserDTO userFollowsUser(Long followerId, Long followedId, HttpServletRequest request) {
+        if (followedId == followerId) throw new InvalidDataException("Can't follow yourself!");
         Validator.nullChecker(followedId, followerId);
 
         UserEntity followerUser = Validator.getEntity(followerId, userRepository);
@@ -244,6 +252,7 @@ public class UserService {
 
     public ReturnUserDTO unFollowsUser(Long followerId, Long followedId, HttpServletRequest request) {
         Validator.nullChecker(followedId, followerId);
+        if (followedId == followerId) throw new InvalidDataException("Can't follow yourself!");
 
         UserEntity followerUser = Validator.getEntity(followerId, userRepository);
         sessionManager.authorizeSession(followerId, request.getSession(), request);
@@ -274,6 +283,7 @@ public class UserService {
     }
 
     public String changeProfilePicture(MultipartFile multipartFile, HttpServletRequest request) {
+        String mimeType = Validator.validateMIME(multipartFile);
         Long userId = (Long) request.getSession().getAttribute(SessionManager.USER_ID);
         UserEntity userEntity = Validator.getEntity(userId, userRepository);
         sessionManager.authorizeSession(userId, request.getSession(), request);
@@ -294,6 +304,10 @@ public class UserService {
             Files.copy(multipartFile.getInputStream(), fullPath);
         } catch (IOException e) {
             throw new InvalidDataException("Invalid data");
+        }
+
+        if (mimeType.contains("image")){
+            picturePurifyService.verifyImagePurity(fullPath);
         }
 
         userEntity.setProfilePicture(fullPath.toString());

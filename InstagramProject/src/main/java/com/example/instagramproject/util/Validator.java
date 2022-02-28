@@ -91,13 +91,14 @@ public class Validator {
     }
 
     @SneakyThrows
-    public static void validateMIME(MultipartFile multipartFile) {
+    public static String validateMIME(MultipartFile multipartFile) {
         Tika tika = new Tika();
         String detectedType = tika.detect(multipartFile.getInputStream());
         System.out.println(detectedType);
         if (!detectedType.contains("video") && !detectedType.contains("image")){
             throw new InvalidDataException("Wrong Media provided!!!");
         }
+        return detectedType;
     }
 
     public static void validatePhoneExists(UserRepository userRepository, String phoneNumber) {

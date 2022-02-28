@@ -49,7 +49,7 @@ public class StoryService {
 
     @SneakyThrows
     public ReturnStoryDTO createStory(Long userId, MultipartFile multipartFile, HttpServletRequest request) {
-        Validator.validateMIME(multipartFile);
+        String mimeType = Validator.validateMIME(multipartFile);
         Validator.nullChecker(userId, multipartFile);
         if (!userRepository.existsById(userId)) throw new InvalidDataException("User doesn't exist");
         if (multipartFile.isEmpty()) throw new InvalidDataException("Media missing from request");
@@ -69,7 +69,9 @@ public class StoryService {
 
         Files.copy(multipartFile.getInputStream(), fullPath);
 
-        picturePurifyService.verifyImagePurity(fullPath);
+        if (mimeType.contains("image")){
+            picturePurifyService.verifyImagePurity(fullPath);
+        }
 
         LocalDateTime dateTime = LocalDateTime.now();
         StoryEntity storyEntity = new StoryEntity();

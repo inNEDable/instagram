@@ -6,6 +6,11 @@
 # Log file
 *.log
 
+# MEDIA FOLDERS
+allPosts/
+allStories/
+allUserProfilePictures/
+
 # BlueJ files
 *.ctxt
 
