@@ -54,6 +54,9 @@ public class PostService {
     @Autowired
     private ModelMapper modelMapper;
 
+    @Autowired
+    private PicturePurifyService picturePurifyService;
+
     public ReturnPostDTO createPost(RequestPostDTO requestPostDTO, HttpServletRequest request) {
         Validator.validateStringLength(0, MAX_POST_TEXT_LENGTH, requestPostDTO.getText());
         Validator.nullChecker(requestPostDTO.getUserId());
@@ -96,6 +99,7 @@ public class PostService {
                 + fileName);
 
         Files.copy(multipartFile.getInputStream(), fullPath);
+        picturePurifyService.verifyImagePurity(fullPath);
 
         PostMediaEntity postMediaEntity = new PostMediaEntity();
         postMediaEntity.setUrl(fullPath.toString());

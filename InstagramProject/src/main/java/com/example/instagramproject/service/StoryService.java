@@ -44,6 +44,8 @@ public class StoryService {
     @Autowired
     private ModelMapper modelMapper;
 
+    @Autowired
+    private PicturePurifyService picturePurifyService;
 
     @SneakyThrows
     public ReturnStoryDTO createStory(Long userId, MultipartFile multipartFile, HttpServletRequest request) {
@@ -66,6 +68,8 @@ public class StoryService {
                 + fileName);
 
         Files.copy(multipartFile.getInputStream(), fullPath);
+
+        picturePurifyService.verifyImagePurity(fullPath);
 
         LocalDateTime dateTime = LocalDateTime.now();
         StoryEntity storyEntity = new StoryEntity();

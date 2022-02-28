@@ -38,4 +38,12 @@ public class ErrorHandlerException extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(errorDTO,HttpStatus.UNAUTHORIZED );
     }
 
+    @ExceptionHandler(value = {PicturePurifyException.class})
+    protected ResponseEntity<ErrorDTO> picPurifyHandler (PicturePurifyException ex) {
+        ErrorDTO errorDTO = new ErrorDTO();
+        errorDTO.setMessage("API Picture Purify Exception : " + ex.getMessage());
+        errorDTO.setStatus(HttpStatus.UNAUTHORIZED.value());
+        return new ResponseEntity<>(errorDTO,HttpStatus.BAD_GATEWAY );
+    }
+
 }
